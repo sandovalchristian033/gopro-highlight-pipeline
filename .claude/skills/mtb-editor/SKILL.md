@@ -1,23 +1,36 @@
 ---
 name: mtb-editor
-description: Procesa un ride nuevo de MTB grabado con GoPro y devuelve un reel de candidatos etiquetado mas los clips limpios listos para CapCut. Usalo siempre que Chris diga "mtb editor", o cuando entregue archivos nuevos de la GoPro, mencione que grabo un ride, hable de procesar/analizar material nuevo, pida "el reel" de un ride, o pregunte que quedo de una grabacion — aunque no nombre la herramienta. Tambien cuando entregue un video ya editado por el para recalibrar el detector.
+description: Procesa un ride nuevo de MTB grabado con GoPro y devuelve el video listo para subir, mas un reel etiquetado para revisarlo y los clips sueltos. Usalo siempre que Chris diga "mtb editor", o cuando entregue archivos nuevos de la GoPro, mencione que grabo un ride, hable de procesar/analizar material nuevo, pida "el reel" o "el video" de un ride, o pregunte que quedo de una grabacion — aunque no nombre la herramienta. Tambien cuando pida ajustes sobre un reel que acaba de ver, o cuando entregue un video ya editado por el para recalibrar el detector.
 ---
 
 # MTB Editor
 
-Convierte 40-60 min de material crudo de GoPro en un reel de revision de ~6 min
-con los momentos de accion etiquetados, mas los clips limpios sueltos para
-arrastrar a CapCut. El pipeline vive en `C:\Users\chris\Documents\pov automation`.
+Convierte 40-60 min de material crudo de GoPro en **el video que sube**, mas un
+reel etiquetado para revisarlo antes. El pipeline vive en
+`C:\Users\chris\Documents\pov automation`.
 
-## Que es esto y que NO es
+## Que entrega, y en que orden
 
-Chris corta el master el mismo, en CapCut. Esta herramienta **no arma el video
-final**: le ahorra tener que mirar los 20 archivos crudos. Su decision de
-alcance, tomada explicitamente — no propongas ensamblar el master
-automaticamente a menos que el lo pida.
+1. `reel/reel_candidatos.mp4` — todo junto en 1080p con etiquetas quemadas.
+   **Esto es lo unico que tiene que mirar.** Existe para que descarte, asi que
+   lleva a proposito mas material del que va a quedar.
+2. `clips/` — los mismos cortes sueltos, resolucion nativa, sin overlays.
+3. `final/video_completo.mp4` — los clips pegados sin recomprimir, con
+   `run.py completo`. **Este es el entregable.**
 
-El reel existe para que **descarte**, asi que lleva a proposito mas material del
-que va a usar (~15% del ride, contra el ~8% que sobrevive a su corte final).
+El flujo real es: renderizas el reel, el lo mira, te dice que sobra, lo anotas
+en `ajustes.toml`, reanalizas, y recien ahi corres `completo`.
+
+## Lo que cambio y hay que tener presente
+
+Al principio Chris cortaba el master el mismo en CapCut y esto solo proponia
+candidatos. **Eso ya no es asi** (16-ago-2026): la seleccion le quedo lo
+bastante buena como para publicar directo, y como sus videos van con **audio
+crudo del trail y nunca musica**, no hay nada que un editor tenga que aportar.
+No le propongas pasar por CapCut, ni musica, ni corte a tiempo con el beat.
+
+Lo que sigue siendo decision suya es **que sobra**: el detector sabe donde hubo
+accion, no sabe que tres curvas seguidas se ven iguales en camara.
 
 ## El flujo
 
@@ -34,7 +47,7 @@ python run.py ingesta --desde "<ruta>" --nombre "<nombre del trail>" --seguir
 ```
 
 `--seguir` encadena analisis y render. Paso a paso, si algo falla:
-`nuevo` → `ingesta` → `analizar` → `reel`.
+`nuevo` → `ingesta` → `analizar` → `reel` → `completo`.
 
 Si no te dio el nombre del trail, preguntaselo antes de empezar: es lo unico que
 no puedes deducir, y el nombre queda en la carpeta del ride para siempre.
@@ -74,8 +87,8 @@ export PATH="$PATH:/c/Users/chris/AppData/Local/Microsoft/WinGet/Packages/Gyan.F
 ### El render es lento, lanzalo en segundo plano
 
 El analisis tarda segundos, pero el render corre en CPU porque el driver NVIDIA
-de este equipo entrega la API NVENC 12.2 y ffmpeg 9.0 pide la 13.1. Un ride de
-30 clips tarda ~30 min. Lanza `run.py reel` con `run_in_background: true` y
+de este equipo entrega la API NVENC 12.2 y ffmpeg 9.0 pide la 13.1. Tarda unas
+3.5 veces la duracion del reel: 18 min para un reel de 5 min. Lanza `run.py reel` con `run_in_background: true` y
 sigue con otra cosa; te avisan cuando termina.
 
 Mientras renderiza hay trabajo util que hacer: leer `analysis.json` y preparar
@@ -160,28 +173,26 @@ Los clips limpios quedan en `rides/<ride>/clips/`. La numeracion de la carpeta
 **coincide** con la del reel; el pipeline borra los clips de corridas anteriores
 justamente para que siga coincidiendo.
 
-Si te pregunta como bajar el video sin las etiquetas, o si ya no ve que le
-falta hacer en CapCut, la respuesta es `python run.py completo`: pega los clips
-en `reel/video_completo.mp4` en resolucion nativa, con `-c copy`, en segundos.
-**Ese archivo es el video final, no un paso intermedio.** Chris publica con el
-**audio crudo del trail** — nunca musica, porque en MTB funciona mejor asi — o
-sea que la razon principal para pasar por un editor no existe. No proponerle
-musica ni corte a tiempo con el beat.
-
-Lo unico que la telemetria no decide y el si podria querer tocar: color, y
-descartar clips que se repiten visualmente. Nada mas.
+Cuando la seleccion ya le guste, `python run.py completo` pega los clips en
+`final/video_completo.mp4` en resolucion nativa, con `-c copy`, en segundos.
+**Ese archivo es el video final, no un paso intermedio.**
 
 ## Espacio en disco
 
-Un ride de ~40 min ocupa **~33.5 GB** (28.9 de originales, 4.2 de clips, 0.4 de
-reel). Con ~230 GB libres eso da unos 7 rides, o sea dos meses grabando cada
-domingo. Vale la pena avisarle cuando quede poco.
+Un ride de ~45 min ocupa **~37 GB** (30-33 de originales, 3.4 de clips, 3.4 del
+video final, 0.3 del reel). Al 16-ago-2026 habia 194 GB libres, o sea unos 5
+rides. Vale la pena avisarle cuando quede poco.
 
 **Chris formatea la SD de 64 GB despues de cada ride**, asi que `raw/` en el
 computador es la **unica copia** que existe de ese material. Nunca propongas
 borrarlo a la ligera, y nunca lo borres tu.
 
-Cuando el termine de editar en CapCut, recuerdale:
+**Su politica de retencion, decidida el 16-ago-2026:** al procesar el ride N,
+borra a mano los originales del ride **N-2**, dejando siempre dos de colchon.
+Al terminar un ride nuevo, **recordarselo con los GB que libera**. La decision y
+el borrado son suyos.
+
+Cuando ya haya subido el video, recuerdale:
 
 ```bash
 python run.py limpiar
@@ -252,4 +263,4 @@ un bug de verdad en el corte de tramos largos, que se habria quedado escondido
 si el numero se hubiera elegido a dedo.
 
 Corre `python tests/test_pipeline.py` despues de cualquier cambio al motor.
-Son 56 comprobaciones y varias son regresiones de bugs que ya costaron caro.
+Son 100 comprobaciones y varias son regresiones de bugs que ya costaron caro.

@@ -103,6 +103,55 @@ target_reel_ratio = 0.15
 # Poner esto en algo mayor que cero fija un largo en segundos e ignora el ratio.
 target_reel_seconds = 0.0
 
+# Cuanto tiene que sostenerse la intensidad por encima del nivel de commit para
+# que cuente como "la accion todavia sigue" al CERRAR el clip.
+#
+# Solo aplica a la cola. La cabeza se ancla en el primer contacto a proposito,
+# porque ahi la senal viene subiendo y ya empezo algo. Al cerrar es al reves: un
+# repunte de medio segundo mientras la rodada se apaga no significa que la
+# accion siga. Medido en Halpatiokee, un pico aislado en el segundo 14.8 estaba
+# estirando un clip que se acababa de verdad en el 9.5.
+#
+# Subelo si los clips todavia terminan en pedaleo; bajalo si cortan la salida
+# rapida de una seccion buena.
+tail_hold_seconds = 1.0
+
+
+[intro_y_final]
+# La apertura y el cierre del video, que salen de reglas propias y NO del
+# puntaje de accion. Tienen que ser aparte porque el puntaje multiplica por
+# `stopped_penalty` todo lo que este por debajo de `moving_speed_kmh`, o sea que
+# esta disenado para tirar exactamente el material que estas reglas buscan.
+#
+# Necesitan el GPS encendido: sin velocidad no hay forma de distinguir "parado
+# en el parqueadero" de "rodando suave".
+
+# Cuanto de la toma quieta se conserva antes de arrancar, y cuanto se sigue
+# despues de la primera pedaleada.
+intro_lead_seconds = 4.0
+intro_tail_seconds = 2.5
+
+# Cuanto de la frenada final entra en el cierre, y cuanto se aguanta ya con la
+# bici detenida.
+outro_lead_seconds = 6.0
+outro_tail_seconds = 3.5
+
+# Un tramo en movimiento tiene que durar esto para contar como salida o llegada
+# de verdad. Sin el minimo, un empujon de dos segundos para acomodarse en el
+# parqueadero se lee como el arranque del ride.
+bookend_move_seconds = 4.0
+
+# Y la quietud alrededor tiene que durar esto. Es tambien lo que la camara tiene
+# que seguir grabando despues de la ultima frenada para que exista un final; si
+# no, se reporta y no se inventa nada.
+bookend_hold_seconds = 2.0
+
+# Cuanto hay que rodar dentro de un archivo para que su arranque desde parado
+# cuente como apertura de tramo y no como una parada de acomodarse. Por debajo
+# de esto, el archivo se trata como "la camara en la mano", que es el unico
+# momento del ride en que la camara apunta al rider.
+bookend_section_seconds = 60.0
+
 
 [pesos]
 # Peso relativo de las senales CONTINUAS dentro de la "intensidad base".

@@ -141,7 +141,7 @@ Despues de correr el pipeline, cada ride queda asi:
 rides/2026-08-16_nombre-del-trail/
   raw/                    los archivos originales de la camara
   clips/                  clips limpios, resolucion nativa, sin overlays
-                          <- estos son los que arrastras a CapCut
+                          <- por si quieres uno suelto
   reel/
     reel_candidatos.mp4   TODO junto en 1080p con etiquetas quemadas
                           <- esto es lo unico que tienes que mirar
@@ -156,8 +156,8 @@ El **reel de candidatos** muestra en pantalla, para cada clip: numero, ranking,
 archivo de origen, timecode exacto, por que fue elegido (AIRE 0.64s, IMPACTO 5.2g,
 CAIDA, VELOCIDAD 48 km/h) y su puntaje.
 
-Tu flujo pasa a ser: mirar 6 minutos de reel, anotar los numeros que te gustan,
-arrastrar esos clips desde `clips/` a CapCut. Nunca mas abrir los 20 originales.
+Tu flujo pasa a ser: mirar el reel, anotar los numeros que **sobran**, y correr
+`run.py completo`. Nunca mas abrir los 20 originales.
 
 ## Instalacion
 

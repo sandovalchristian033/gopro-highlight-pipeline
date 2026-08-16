@@ -202,8 +202,8 @@ def cmd_reel(args, cfg) -> int:
         say(f"  reel revision : {output.reel}")
     say(f"  tiempo        : {human_time(time.monotonic() - started)}")
     say()
-    say("  Siguiente paso: mira el reel, anota los numeros que sirven,")
-    say("  y arrastra esos clips desde la carpeta 'clips' a CapCut.")
+    say("  Siguiente paso: mira el reel y anota los numeros que sobren.")
+    say("  Si ya esta bien asi:  python run.py completo")
     return 0
 
 
@@ -408,12 +408,14 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Flujo tipico despues de un ride:\n"
             "  python run.py ingesta --nombre \"nombre del trail\" --seguir\n"
+            "  python run.py completo          # el video que subes\n"
             "\n"
             "O paso a paso:\n"
             "  python run.py nuevo --nombre \"cerro-san-cristobal\"\n"
             "  python run.py ingesta\n"
             "  python run.py analizar\n"
             "  python run.py reel\n"
+            "  python run.py completo\n"
         ),
     )
     sub = parser.add_subparsers(dest="comando", required=True)

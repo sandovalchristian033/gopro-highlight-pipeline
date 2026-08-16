@@ -1,6 +1,6 @@
 """Render the two deliverables: clean clips for editing, and a labelled reel.
 
-`clips/`  full resolution, no overlays. These are what you drag into CapCut.
+`clips/`  full resolution, no overlays. The individual cuts.
 `reel/`   one 1080p video with every candidate back to back and a burned-in
           label saying which file it came from, its timecode, why it was
           picked and how it ranked. This is the only thing you have to watch.
