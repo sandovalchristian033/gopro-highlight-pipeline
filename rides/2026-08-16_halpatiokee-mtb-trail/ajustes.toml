@@ -1,0 +1,34 @@
+# Decisiones manuales de Chris sobre este ride (16-ago-2026).
+#
+# Grabo improvisando: la primera mitad del trail desde el casco y la segunda
+# desde el pecho. No le gusto como quedo la toma de casco, asi que esos
+# archivos no aportan candidatos de accion. Siguen contando como material del
+# ride y siguen pudiendo aportar apertura, que es justo lo que hace GX011141.
+
+excluir = [
+  "GX011136", "GX011137", "GX011138", "GX011139", "GX011140",
+  "GX011141", "GX011142", "GX011143", "GX011144", "GX021144",
+]
+
+# La apertura la eligio el: primero la toma con la camara en la mano, que es la
+# unica donde se le ve, y despues el arranque desde parado.
+aperturas = ["GX011145", "GX011141"]
+
+# Cortes concretos que descarto viendo el reel v1.
+descartar = [
+  "GX011146@87.8",    # clip 19
+  "GX011146@131.2",   # clip 21
+]
+
+# La regla automatica no encontro cierre: la camara se apago con la bici
+# todavia rodando a 9-10 km/h. Pero ese ultimo archivo es justo la llegada al
+# parqueadero del parque, que es el otro final que Chris describio. Lo elige el
+# porque ninguna regla honesta distingue "llegar rodando al parqueadero" de
+# "quedarse a mitad de trail".
+cierre = "GX011151@14.0"
+
+# El material elegible baja a 12.3 min al dejar fuera el casco, asi que el 15%
+# por defecto daria 110 s. Chris prefiere calidad sobre largo pero quiere todo
+# lo bueno de la parte de pecho, que son unos 250 s; esto deja algo de margen
+# para que entren un par de candidatos mas.
+reel_segundos = 290

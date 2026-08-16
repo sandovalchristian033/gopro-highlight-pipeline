@@ -1,0 +1,22 @@
+# El material de video no va al historial: son decenas de GB por ride y no se
+# pueden versionar de forma util. Lo que si se guarda es todo lo que define
+# como se procesan, que es lo que cuesta reconstruir.
+*.mp4
+*.MP4
+*.mov
+*.MOV
+*.lrv
+*.LRV
+
+# La libreria de rides queda fuera, con una excepcion: `ajustes.toml` si se
+# guarda. Son las decisiones manuales de Chris sobre cada ride, pesan nada, y
+# no se deducen de ningun otro sitio. Se escribe carpeta por carpeta porque git
+# no puede rescatar un archivo que esta dentro de un directorio ya ignorado.
+/rides/*
+!/rides/*/
+/rides/*/*
+!/rides/*/ajustes.toml
+
+__pycache__/
+*.pyc
+.huellas/

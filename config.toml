@@ -1,0 +1,204 @@
+# Ajustes del pipeline. Todo lo que esta aca tiene un valor por defecto
+# razonable en pov/config.py; esto solo lo sobreescribe.
+#
+# Despues del primer ride real vas a querer tocar sobre todo:
+#   - target_reel_seconds  (que tan largo sale el reel de revision)
+#   - air_threshold_g      (si detecta muchos saltos falsos, subelo un poco)
+#   - pre_roll / post_roll (cuanto contexto antes y despues de cada momento)
+
+library_root = "rides"
+
+
+[deteccion]
+# Debajo de estos g, sostenido este tiempo, estas en el aire.
+air_threshold_g = 0.45
+
+# 0.22 s era demasiado permisivo. Con material real disparo dos veces en un
+# camino de grava plano donde no habia ningun salto: pasar sobre un lomo
+# descarga la bici un cuarto de segundo sin que despegue. Etiquetar eso como
+# "AIRE" en el reel es peor que no detectarlo. Un salto que se ve como salto
+# en camara dura mas que esto.
+air_min_seconds = 0.35
+# Cuanto airtime vale un puntaje perfecto. 0.8 s es un salto grande de verdad.
+air_reference_seconds = 0.80
+
+# Golpes: aterrizajes, piedras, caidas.
+impact_threshold_g = 2.8
+impact_reference_g = 6.0
+
+# Caida = golpe fuerte + la bici se detiene justo despues.
+crash_impact_g = 4.5
+crash_min_speed_kmh = 12.0
+crash_stop_kmh = 3.0
+
+# Debajo de esta velocidad se considera detenido y casi no puntua.
+moving_speed_kmh = 5.0
+
+
+[segmentos]
+# Contexto antes y despues de cada momento detectado.
+# El pre_roll importa: un salto sin la entrada no se entiende.
+#
+# OJO: el pre_roll se cuenta desde donde la accion ARRANCA, no desde donde el
+# puntaje cruza el umbral. Son cosas distintas y confundirlas era el motivo de
+# que los clips 02, 04, 05 y 20 del primer reel empezaran con varios segundos
+# de nada. Ver commit_fraction aca abajo.
+#
+# Medido: los cortes de tu propio JD Park abren con una mediana de 1.12 s antes
+# del primer evento (p25 = 0.78 s). El sistema abria con 5.07 s de mediana y
+# hasta 15.3 s. Con pre_roll = 1.8 la mediana queda en 2.30 s, o sea a un
+# segundo de como cortas tu.
+#   - te queda todavia tiempo muerto al principio -> baja a 1.2
+#   - se pierde la entrada del salto              -> sube a 2.4
+pre_roll = 1.8
+post_roll = 3.6
+
+# Cuanto tiene que subir la intensidad de pedaleo, desde el umbral hacia el
+# pico del propio tramo, para que el clip pueda abrir. En 0 se comporta como
+# antes: abre donde el puntaje cruza el umbral, que es varios segundos antes de
+# que se vea algo porque las senales continuas suben de a poco.
+#
+# Se mide sobre la intensidad continua (velocidad, viento, chatter), NUNCA
+# sobre el puntaje total. Con el total, el bono de un golpe de 8 g levanta
+# tanto el pico que la aproximacion rapida hacia el golpe queda por debajo del
+# corte y se recorta: probado, convertia un corte que abria 6.4 s antes en uno
+# que abria 5.1 s TARDE, justo lo contrario de lo que se busca.
+#
+# Por encima de ~0.5 empieza a comerse aproximaciones legitimas. 0.20 recorta
+# la mitad del tiempo muerto sin perder ni un acierto contra el ground truth.
+commit_fraction = 0.20
+
+min_segment_seconds = 3.1
+
+# 15 s cortaba demasiado corto. Dos mediciones independientes coincidieron:
+# la deteccion de cortes sobre tu JD Park dio percentil 90 = 19.4 s (el mas
+# largo, 38 s), y el ajuste de parametros llego solo a 21.5 s. Cuando un tramo
+# es bueno, se le deja correr.
+max_segment_seconds = 21.5
+
+# ---------------------------------------------------------------------------
+# ESTOS DOS SON LOS QUE TOCAS SI EL REEL TRAE RELLENO
+# ---------------------------------------------------------------------------
+# Que porcentaje del tiempo del ride pasa como candidato. 88 = el mejor 12%.
+# El umbral se calcula sobre TODO el ride junto, no archivo por archivo, asi
+# que un archivo que solo trae pedaleo no aporta nada.
+#   - te sobra relleno  -> sube a 91-93
+#   - te falta material -> baja a 82-85
+peak_percentile = 90.7
+
+# Piso absoluto de puntaje (escala 0-100), encima del percentil. Evita que un
+# ride entero de pedaleo tranquilo aporte "highlights" solo porque algo tiene
+# que quedar en el top 10%.
+min_segment_score = 28.0
+# ---------------------------------------------------------------------------
+
+# Cuanto material entra al reel de revision, como fraccion del total grabado.
+# Medido sobre tu ride real: 208 s de video final salieron de 2479 s de crudo,
+# o sea sobrevive el 8.4%. El reel tiene que ser un poco mas que eso, porque
+# justamente existe para darte algo que descartar. 15% queda en el doble de tu
+# corte final. Se expresa como fraccion y no como largo fijo porque un ride de
+# 30 min y uno de 60 no deberian generar el mismo reel.
+target_reel_ratio = 0.15
+
+# Poner esto en algo mayor que cero fija un largo en segundos e ignora el ratio.
+target_reel_seconds = 0.0
+
+
+[pesos]
+# Peso relativo de las senales CONTINUAS dentro de la "intensidad base".
+# Estos numeros NO son inventados: salen de medir tu propio material
+# (GX011110.MP4), comparando la parte buena contra la parte de puro pedaleo.
+#
+#   senal      separacion (bueno vs pedaleo)
+#   wind       2.51x   <- el mejor, y funciona SIN GPS
+#   chatter    2.04x
+#   gyro       1.75x
+#   audio      1.27x   <- casi nada, ver abajo
+#   lean       0.71x   <- INVERTIDO, ver abajo
+#
+# Y los valores de abajo salieron de AJUSTARLOS contra 45 s de ground truth
+# recuperados de tu propio JD Park, validados sobre archivos que la busqueda
+# nunca vio. Reproducible con:  python run.py comparar
+
+# SIN CALIBRAR. Los 19 archivos del ride de calibracion se grabaron con el GPS
+# apagado, asi que este peso nunca se ejercito y el optimizador pudo poner aqui
+# cualquier cosa. Queda en un valor que mantiene la velocidad dominante cuando
+# si existe, que es lo que dice la fisica. Recalibrar apenas haya un ride con
+# GPS encendido.
+speed = 1.5
+
+# El medidor de viento interno de la camara (stream WNDM), el que usa para
+# decidir cuando activar la reduccion de ruido de viento. Se mide ANTES del
+# control de ganancia, asi que el AGC no lo aplasta. Es el unico proxy de
+# velocidad util con el GPS apagado, y resuelve el caso que chatter no puede:
+# terreno rugoso pero lento. En tu archivo bajo de 78 a 6 siguiendo el ride.
+wind = 1.08
+
+# Terreno roto. Mide "rugoso", no "rapido": pedalear sobre grava se le parece
+# a bajar sobre grava. Aun asi el ajuste lo prefirio un poco por encima de wind.
+chatter = 1.12
+gyro = 0.74     # rotacion cruda, mas ruidosa que chatter
+
+# Bajo porque la Hero 9 tiene control automatico de ganancia en el microfono,
+# asi que el volumen grabado apenas sigue a la velocidad: -23.9 dBFS pedaleando
+# fuerte contra -23.2 dBFS suave. La medicion directa decia 0.10; el ajuste
+# sobre 19 archivos prefirio un poco mas, y este es el valor ajustado. Igual
+# sube solo si un archivo no trae telemetria y es lo unico que queda.
+audio = 0.26
+
+# En cero, y vale la pena explicar por que para que nadie lo prenda a ciegas.
+# 'lean' mide la desviacion respecto a la orientacion media de la camara. En un
+# mount de casco o pecho eso es sobre todo TU CABEZA, no la bici, y uno mira
+# alrededor justamente cuando va pedaleando tranquilo. Medido dio 0.71x:
+# invertido, mas alto en las partes aburridas. Solo vale la pena retomarlo
+# cuando haya GPS para condicionarlo a que la velocidad sea alta.
+lean = 0.0
+
+
+[puntaje]
+# El puntaje final se arma asi:
+#     puntaje = base_gain * intensidad_base + air_gain * aire + impact_gain * golpe
+#
+# Aire e impacto NO promedian con las senales continuas: son eventos, no
+# niveles. Si promediaran, un archivo sin saltos perderia casi la mitad de su
+# escala por tener un componente en cero, y quedaria imposible de comparar
+# contra uno que si tiene. Sumando encima, un tramo tranquilo llega hasta
+# base_gain y un salto lo pasa por arriba con claridad.
+#
+# Valores ajustados contra el ground truth de JD Park y validados sobre
+# archivos que la busqueda nunca vio.
+base_gain = 0.65
+air_gain = 0.62
+impact_gain = 0.69
+
+
+[render]
+reel_height = 1080
+
+# CQ/CRF: mas bajo = mejor calidad y archivo mas grande.
+#
+# clip_quality 20 es casi transparente: con material POV muy detallado (pasto,
+# palmeras, arena) los clips salen del orden de 80-90 Mbps, parecido al
+# original. Es lo correcto para lo que vas a editar. Si el espacio en disco
+# molesta, 22-23 baja el tamano a la mitad sin diferencia visible en pantalla.
+clip_quality = 20
+
+# El reel solo sirve para decidir que clips quedan, asi que puede ser barato.
+reel_quality = 28
+
+# Techo duro de bitrate del reel, en Mbit/s. El CRF fija calidad pero no acota
+# el tamano, y pasto y palmeras a velocidad son lo peor para cualquier encoder.
+# Con esto un reel de 6 min pesa ~350 MB en vez de ~900 MB.
+reel_max_mbps = 8.0
+
+# Usar la GPU NVIDIA si esta disponible. El sistema la prueba de verdad antes
+# de usarla (encodea un frame): si el driver es viejo, cae solo a CPU y avisa.
+#
+# ESTADO EN ESTE EQUIPO (agosto 2026): la RTX 3050 esta, pero ffmpeg 9.0 exige
+# la API NVENC 13.1 y el driver instalado entrega la 12.2. Se renderiza por CPU.
+# Para recuperar la GPU: actualizar el driver NVIDIA a 610.00 o mas nuevo.
+use_nvenc = true
+
+# Solo aplica cuando no hay GPU. "faster" hace tolerable renderizar 4K en un
+# laptop; "medium" se ve apenas mejor pero tarda casi el doble.
+x264_preset = "faster"
