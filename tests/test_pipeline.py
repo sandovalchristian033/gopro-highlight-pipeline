@@ -20,7 +20,9 @@ from pov import ajustes as ajustes_mod
 from pov import bookends as bookends_mod
 from pov import cleanup as cleanup_mod
 from pov import config as config_mod
-from pov import gpmf, segments as segments_mod, signals as signals_mod
+from pov import ffmpeg as ffmpeg_mod
+from pov import gpmf, render as render_mod, ride as ride_mod
+from pov import segments as segments_mod, signals as signals_mod
 from pov.telemetry import GRAVITY, Series, Telemetry
 
 PASSED: list[str] = []
@@ -809,6 +811,174 @@ def test_bookends() -> None:
         check("la apertura no", intro.segment.role == "intro" and intro.segment.rank == 0)
 
 
+def test_clip_reuse() -> None:
+    """Un clip solo se reutiliza si es de verdad el corte que pide el analisis.
+
+    Reutilizar por nombre ahorra media hora de render, pero el nombre no lleva
+    la duracion: si cambia `post_roll` o el recorte de cola, el corte cambia y
+    el nombre no. Y un render interrumpido deja un archivo truncado que pesa
+    mas de cero. En los dos casos el clip viejo se colaria al video final sin
+    un solo error en pantalla.
+    """
+    print("\n[15] Reutilizacion de clips ya renderizados")
+    import tempfile
+
+    segment = segments_mod.Segment(
+        source=Path("GX011147.MP4"), start=10.0, end=25.0, score=80.0, peak_time=14.0
+    )
+    original = ffmpeg_mod.duration
+    try:
+        with tempfile.TemporaryDirectory() as folder:
+            clip = Path(folder) / "01_080pts_AIRE_GX011147_00m10s.mp4"
+            clip.write_bytes(b"x" * 1024)
+
+            ffmpeg_mod.duration = lambda path: 15.02
+            check("acepta el clip que coincide", render_mod.clip_is_current(clip, segment))
+
+            ffmpeg_mod.duration = lambda path: 18.6
+            check(
+                "rechaza el que quedo de un ajuste anterior",
+                not render_mod.clip_is_current(clip, segment),
+            )
+
+            ffmpeg_mod.duration = lambda path: 3.4
+            check(
+                "rechaza el truncado por un render interrumpido",
+                not render_mod.clip_is_current(clip, segment),
+            )
+
+            def explota(path):
+                raise RuntimeError("moov atom not found")
+
+            ffmpeg_mod.duration = explota
+            check(
+                "un archivo ilegible se rehace, no revienta",
+                not render_mod.clip_is_current(clip, segment),
+            )
+    finally:
+        ffmpeg_mod.duration = original
+
+
+def test_no_repeated_footage() -> None:
+    """La accion no repite lo que ya sale en la apertura o en el cierre.
+
+    El cierre arranca en la ultima frenada: si venias rodando fuerte hasta ahi,
+    ese tramo ya entro como accion por su cuenta. Pegados uno detras del otro
+    serian el mismo metraje dos veces en el video final.
+    """
+    print("\n[16] Ni la apertura ni el cierre repiten metraje")
+
+    def seg(name, start, end, role=""):
+        return segments_mod.Segment(
+            source=Path(name), start=start, end=end, score=50.0,
+            peak_time=(start + end) / 2, role=role,
+        )
+
+    outro = seg("GX011151.MP4", 14.0, 27.0, "outro")
+    intro = seg("GX011145.MP4", 0.0, 6.5, "intro-cam")
+    selected = [
+        seg("GX011147.MP4", 10.0, 25.0),      # otro archivo, no se toca
+        seg("GX011151.MP4", 2.0, 13.8),       # termina justo antes del cierre
+        seg("GX011151.MP4", 18.0, 26.0),      # dentro del cierre
+        seg("GX011145.MP4", 4.0, 12.0),       # pisa la apertura
+    ]
+    kept, removed = ride_mod.drop_repeated(selected, [intro, outro])
+
+    check("quita el corte que cae dentro del cierre", len(removed) == 2, f"{len(removed)}")
+    check("respeta lo que viene de otro archivo", kept[0].source.stem == "GX011147")
+    check("un borde que se toca no cuenta como repetido", len(kept) == 2, f"{len(kept)}")
+    check(
+        "y el que sobrevive es el que termina antes",
+        kept[1].start == 2.0 and kept[1].end == 13.8,
+    )
+    check(
+        "sin apertura ni cierre no quita nada",
+        ride_mod.drop_repeated(selected, [])[1] == [],
+    )
+
+
+def test_reported_budget() -> None:
+    """El reporte dice los segundos que se pidieron de verdad.
+
+    Se recalculaba sobre el ride entero, asi que cuando `ajustes.toml` fija el
+    largo o deja archivos fuera -- los dos casos del ride del 16-ago -- el
+    numero de `analysis.json` era uno que nunca se uso.
+    """
+    print("\n[17] El presupuesto que reporta es el que se uso")
+    import json
+    import tempfile
+
+    cfg = config_mod.load()
+    with tempfile.TemporaryDirectory() as folder:
+        ride = ride_mod.Ride(root=Path(folder), budget=290.0)
+        ride_mod.write_reports(ride, cfg)
+        payload = json.loads(ride.analysis_file.read_text(encoding="utf-8"))
+        check(
+            "reporta el largo fijado a mano",
+            payload["config"]["presupuesto_reel_s"] == 290.0,
+            f"{payload['config']['presupuesto_reel_s']}",
+        )
+
+        sin_ajuste = ride_mod.Ride(root=Path(folder))
+        ride_mod.write_reports(sin_ajuste, cfg)
+        payload = json.loads(sin_ajuste.analysis_file.read_text(encoding="utf-8"))
+        check(
+            "sin ajuste sigue cayendo en el calculo por porcentaje",
+            payload["config"]["presupuesto_reel_s"]
+            == round(cfg.reel_budget(sin_ajuste.total_raw_seconds()), 1),
+            f"{payload['config']['presupuesto_reel_s']}",
+        )
+
+
+def test_space_check() -> None:
+    """Copiar sin espacio falla al principio, no a los 20 GB."""
+    print("\n[18] Espacio antes de copiar")
+    import tempfile
+
+    from pov import ingest as ingest_mod
+
+    with tempfile.TemporaryDirectory() as folder:
+        destino = Path(folder) / "raw"
+        destino.mkdir()
+
+        libre = ingest_mod.shutil.disk_usage(destino).free
+        ok = True
+        try:
+            ingest_mod.check_space(destino, [1024, 2048])
+        except RuntimeError:
+            ok = False
+        check("deja pasar lo que cabe", ok)
+
+        exploto = False
+        try:
+            ingest_mod.check_space(destino, [libre * 2])
+        except RuntimeError as exc:
+            exploto = "limpiar --todos" in str(exc)
+        check("para lo que no cabe, y dice como liberar", exploto)
+
+        check("sin nada que copiar no molesta", ingest_mod.check_space(destino, []) is None)
+
+        # Lo ya copiado no se vuelve a contar: reintentar una ingesta a medias
+        # no puede fallar por espacio que en realidad ya esta ocupado.
+        (destino / "GX010001.MP4").write_bytes(b"x" * 100)
+        pendiente = ingest_mod._pending(
+            {"GX010001.MP4": 100, "GX010002.MP4": 500}, destino
+        )
+        check("no cuenta lo que ya esta copiado", pendiente == [500], f"{pendiente}")
+
+    # Y la carcasa que deja una ingesta fallida no se convierte en "el ride mas
+    # reciente" para todos los comandos que corras sin nombre.
+    with tempfile.TemporaryDirectory() as folder:
+        library = Path(folder)
+        bueno = library / "2026-08-16_trail"
+        (bueno / "raw").mkdir(parents=True)
+        (bueno / "raw" / "GX010001.MP4").write_bytes(b"x")
+        (library / "2026-08-17").mkdir()  # ingesta que fallo: existe y esta vacia
+
+        elegido = ride_mod.resolve(library, None)
+        check("ignora el ride vacio de una ingesta fallida", elegido == bueno, f"{elegido.name}")
+
+
 def main() -> int:
     print("Validando el motor con datos sinteticos")
     print("=" * 46)
@@ -827,6 +997,10 @@ def main() -> int:
     test_bookends()
     test_tail_trim()
     test_ajustes()
+    test_clip_reuse()
+    test_no_repeated_footage()
+    test_reported_budget()
+    test_space_check()
 
     print("\n" + "=" * 46)
     print(f"{len(PASSED)} OK, {len(FAILED)} fallas")

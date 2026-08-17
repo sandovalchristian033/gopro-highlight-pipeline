@@ -214,13 +214,28 @@ def cmd_completo(args, cfg) -> int:
     root = ride_mod.resolve(library, args.ride)
     result = ride_mod.analyse(root, cfg)
 
-    clips = [
-        result.clips_dir / render.clip_filename(order, segment)
+    pairs = [
+        (result.clips_dir / render.clip_filename(order, segment), segment)
         for order, segment in enumerate(result.selected, start=1)
     ]
-    missing = [c for c in clips if not c.exists()]
+    clips = [path for path, _ in pairs]
+    missing = [path for path, _ in pairs if not path.exists()]
     if missing:
         say(f"Faltan {len(missing)} clips. Corre primero: python run.py reel")
+        return 1
+
+    # Pegar es copiar bytes, asi que lo que este mal en la carpeta sale tal cual
+    # en el video final y sin avisar. Si un clip no dura lo que dice el analisis
+    # -- render interrumpido, o un parametro que cambio despues de renderizar --
+    # mejor pararse aqui que subir un video con un corte viejo dentro.
+    stale = [path for path, segment in pairs if not render.clip_is_current(path, segment)]
+    if stale:
+        say(f"Hay {len(stale)} clips que no coinciden con el analisis de ahora:")
+        for path in stale[:5]:
+            say(f"  {path.name}")
+        if len(stale) > 5:
+            say(f"  ... y {len(stale) - 5} mas")
+        say("Vuelve a renderizarlos primero: python run.py reel")
         return 1
 
     title(f"Pegando {len(clips)} clips de {root.name}")
@@ -346,7 +361,14 @@ def cmd_limpiar(args, cfg) -> int:
     if not args.si:
         say()
         expected = "BORRAR ORIGINALES" if risky else "si"
-        answer = input(f"  Escribe '{expected}' para continuar: ").strip()
+        try:
+            answer = input(f"  Escribe '{expected}' para continuar: ").strip()
+        except EOFError:
+            # Sin a quien preguntar (una tuberia, una tarea programada) la unica
+            # respuesta segura es no borrar. Para eso esta --si.
+            say()
+            say("  Sin confirmacion posible aqui. Si es a proposito, usa --si.")
+            return 0
         if answer != expected:
             say("  Cancelado, no se borro nada.")
             return 0

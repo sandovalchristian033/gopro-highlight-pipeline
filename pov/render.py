@@ -65,6 +65,34 @@ def _clear_stale_clips(folder: Path, keep: set[str]) -> None:
             path.unlink()
 
 
+# Cuanto puede desviarse la duracion real de un clip de la que dice el analisis
+# antes de considerarlo otro clip. Medido sobre un ride entero: la diferencia
+# maxima entre lo que pide el analisis y lo que produce ffmpeg fue 0.05 s.
+CLIP_TOLERANCE_SECONDS = 0.30
+
+
+def clip_is_current(path: Path, segment: Segment) -> bool:
+    """Si el archivo en disco es de verdad el corte que pide el analisis.
+
+    Reutilizar clips ya renderizados ahorra media hora, pero "existe y pesa
+    algo" no alcanza como prueba de que sea el correcto, y las dos formas de
+    equivocarse ya pasaron o estuvieron a punto:
+
+    - un render interrumpido a mitad deja un archivo truncado, con tamano > 0;
+    - cambiar `post_roll` o el recorte de cola mueve el final del corte **sin
+      cambiar el nombre**, porque el nombre solo lleva orden, puntaje, etiqueta
+      y segundo de inicio.
+
+    En los dos casos el clip viejo se colaria al video final sin un solo error
+    en pantalla, que es la peor forma de fallar. Un ffprobe por clip cuesta
+    milisegundos y lo cierra.
+    """
+    try:
+        return abs(ffmpeg.duration(path) - segment.duration) <= CLIP_TOLERANCE_SECONDS
+    except Exception:
+        return False  # ilegible es motivo de sobra para rehacerlo
+
+
 def render_clips(ride: Ride, cfg, use_nvenc: bool, on_progress=None) -> list[Path]:
     ride.clips_dir.mkdir(parents=True, exist_ok=True)
     encoder = ffmpeg.encoder_args(use_nvenc, cfg.clip_quality, cfg.x264_preset)
@@ -78,7 +106,7 @@ def render_clips(ride: Ride, cfg, use_nvenc: bool, on_progress=None) -> list[Pat
         out = ride.clips_dir / clip_filename(order, segment)
         if on_progress:
             on_progress(order, len(ride.selected), out.name)
-        if out.exists() and out.stat().st_size > 0:
+        if out.exists() and out.stat().st_size > 0 and clip_is_current(out, segment):
             written.append(out)
             continue
 

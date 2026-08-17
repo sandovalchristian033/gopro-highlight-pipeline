@@ -38,6 +38,52 @@ class IngestResult:
 
 
 # --------------------------------------------------------------------------
+# 0. does it even fit
+# --------------------------------------------------------------------------
+
+# Un poco de margen sobre lo que dicen pesar los archivos: dejar el disco
+# exactamente a cero rompe cualquier otra cosa que este corriendo, y los
+# tamanos que reporta la camara sobre MTP son aproximados.
+SPACE_MARGIN = 1.05
+
+
+def check_space(destination: Path, sizes: list[int]) -> None:
+    """Fallar antes de copiar, no a los 20 GB.
+
+    Un ride son ~33 GB. Si no caben, `shutil.copyfile` revienta a mitad de la
+    transferencia, despues de media hora, y deja el trabajo por la mitad. Vale
+    mucho mas decirlo al principio, cuando el material todavia esta entero en
+    la tarjeta y todavia se puede liberar espacio.
+    """
+    needed = sum(sizes)
+    if needed <= 0:
+        return
+    destination.mkdir(parents=True, exist_ok=True)
+    free = shutil.disk_usage(destination).free
+    if free >= needed * SPACE_MARGIN:
+        return
+    raise RuntimeError(
+        f"No cabe: hacen falta {needed / 2**30:.1f} GB y quedan "
+        f"{free / 2**30:.1f} GB libres en el disco.\n"
+        "  Libera espacio sin tocar nada irrecuperable:\n"
+        "    python run.py limpiar --todos\n"
+        "  (borra clips, reel y cache de los rides viejos; los originales, el\n"
+        "   video final y el analisis se quedan)"
+    )
+
+
+def _pending(sizes: dict[str, int], destination: Path) -> list[int]:
+    """Los tamanos de lo que falta por copiar, ignorando lo que ya esta."""
+    pending = []
+    for name, size in sizes.items():
+        target = destination / name
+        if target.exists() and size and target.stat().st_size == size:
+            continue
+        pending.append(size)
+    return pending
+
+
+# --------------------------------------------------------------------------
 # 1. removable drive / SD card reader
 # --------------------------------------------------------------------------
 
@@ -158,17 +204,25 @@ def run(destination: Path, from_folder: Path | None = None, on_progress=None) ->
         sources = sorted(p for p in from_folder.rglob("*") if p.suffix.lower() == VIDEO_EXT)
         if not sources:
             raise FileNotFoundError(f"No hay .mp4 en {from_folder}")
+        check_space(destination, _pending({p.name: p.stat().st_size for p in sources}, destination))
         copied, skipped = copy_from_folder(sources, destination, on_progress)
         return IngestResult("carpeta", copied, skipped, time.monotonic() - started)
 
     dcim = find_card_dcim()
     if dcim is not None:
         sources = _card_videos(dcim)
+        check_space(destination, _pending({p.name: p.stat().st_size for p in sources}, destination))
         copied, skipped = copy_from_folder(sources, destination, on_progress)
         return IngestResult(f"tarjeta SD ({dcim})", copied, skipped, time.monotonic() - started)
 
     camera = find_camera_mtp()
     if camera is not None:
+        listing = {
+            str(f.get("name")): int(f.get("size") or 0)
+            for f in camera.get("files", [])
+            if str(f.get("name", "")).lower().endswith(VIDEO_EXT)
+        }
+        check_space(destination, _pending(listing, destination))
         copied, skipped = copy_from_mtp(destination)
         return IngestResult(f"USB / MTP ({camera.get('device', 'GoPro')})", copied, skipped, time.monotonic() - started)
 

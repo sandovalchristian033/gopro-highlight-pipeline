@@ -1,6 +1,6 @@
 # POV Automation
 
-Pipeline para pasar de "20 archivos crudos de la GoPro" a "clips listos para editar"
+Pipeline para pasar de "20 archivos crudos de la GoPro" a un video publicable,
 sin tener que mirar el material completo.
 
 ## La idea
@@ -203,6 +203,15 @@ python run.py revisar                                # ver la lista de cortes
 python run.py analizar 2026-08-16_nombre-del-trail   # apuntar a un ride puntual
 python run.py limpiar                                # liberar espacio del ride
 ```
+
+### Si cambias algo despues de renderizar
+
+Los clips se reutilizan entre corridas para no re-renderizar media hora, pero
+solo si **duran lo que dice el analisis**. Si tocas un parametro, editas
+`ajustes.toml` o se interrumpe un render, `run.py reel` rehace nada mas los
+clips afectados, y `run.py completo` se planta antes de pegar si alguno no
+coincide. Pegar es copiar bytes: un clip viejo saldria tal cual en el video
+final, sin un solo error en pantalla.
 
 ### Liberar espacio
 

@@ -177,11 +177,22 @@ Cuando la seleccion ya le guste, `python run.py completo` pega los clips en
 `final/video_completo.mp4` en resolucion nativa, con `-c copy`, en segundos.
 **Ese archivo es el video final, no un paso intermedio.**
 
+Si `completo` dice que hay clips que **no coinciden con el analisis**, no
+insistas ni lo fuerces: significa que el clip de disco ya no es el corte que
+pide el analisis de ahora — un render que se interrumpio, o un parametro que
+cambio despues de renderizar. Corre `run.py reel` otra vez y solo se rehacen
+los que hagan falta. Pegar es copiar bytes: lo que este mal en la carpeta sale
+tal cual en el video final, y sin avisar.
+
 ## Espacio en disco
 
 Un ride de ~45 min ocupa **~37 GB** (30-33 de originales, 3.4 de clips, 3.4 del
-video final, 0.3 del reel). Al 16-ago-2026 habia 194 GB libres, o sea unos 5
+video final, 0.3 del reel). Al 16-ago-2026 habia 223 GB libres, o sea unos 5
 rides. Vale la pena avisarle cuando quede poco.
+
+`ingesta` mide antes de copiar y se planta si no cabe, en vez de reventar a los
+20 GB: si eso pasa, `run.py limpiar --todos` libera clips y reel de los rides
+viejos sin tocar nada irrecuperable.
 
 **Chris formatea la SD de 64 GB despues de cada ride**, asi que `raw/` en el
 computador es la **unica copia** que existe de ese material. Nunca propongas
@@ -263,4 +274,4 @@ un bug de verdad en el corte de tramos largos, que se habria quedado escondido
 si el numero se hubiera elegido a dedo.
 
 Corre `python tests/test_pipeline.py` despues de cualquier cambio al motor.
-Son 100 comprobaciones y varias son regresiones de bugs que ya costaron caro.
+Son 116 comprobaciones y varias son regresiones de bugs que ya costaron caro.

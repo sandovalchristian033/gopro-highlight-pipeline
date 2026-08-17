@@ -46,6 +46,10 @@ class Ride:
     outro: Segment | None = None
     bookend_notes: list[str] = field(default_factory=list)
     ajustes: "ajustes_mod.Ajustes" = field(default_factory=lambda: ajustes_mod.Ajustes())
+    # Los segundos de accion que se pidieron de verdad, ya contando la exclusion
+    # de archivos y el largo fijado a mano. Se guarda para poder reportarlo:
+    # recalcularlo en el reporte daba una cifra que nunca se uso.
+    budget: float = 0.0
 
     @property
     def name(self) -> str:
@@ -102,6 +106,36 @@ def source_files(ride_root: Path) -> list[Path]:
         if found:
             return sorted(found, key=recording_order)
     return []
+
+
+def _overlap(a: Segment, b: Segment) -> float:
+    """Segundos de metraje que dos cortes comparten. 0 si son de otro archivo."""
+    if a.source != b.source:
+        return 0.0
+    return max(0.0, min(a.end, b.end) - max(a.start, b.start))
+
+
+# Medio segundo compartido es un borde que se toca; mas que eso es la misma
+# imagen dos veces.
+REPEAT_SECONDS = 0.5
+
+
+def drop_repeated(
+    selected: list[Segment], bookends: list[Segment]
+) -> tuple[list[Segment], list[Segment]]:
+    """Saca de la accion lo que ya sale en la apertura o en el cierre.
+
+    Devuelve (los que quedan, los que se fueron). Manda el extremo porque su
+    sitio en el video es fijo: la apertura abre y el cierre cierra, mientras que
+    un corte de accion se puede perder sin que se note.
+    """
+    kept, removed = [], []
+    for segment in selected:
+        if any(_overlap(segment, b) > REPEAT_SECONDS for b in bookends):
+            removed.append(segment)
+        else:
+            kept.append(segment)
+    return kept, removed
 
 
 def analyse(ride_root: Path, cfg, on_progress=None) -> Ride:
@@ -169,8 +203,8 @@ def analyse(ride_root: Path, cfg, on_progress=None) -> Ride:
     # El presupuesto se mide contra el material del que se puede sacar, no
     # contra el ride entero: si media grabacion queda fuera, pedirle el mismo
     # numero de segundos al resto obliga a bajar el liston.
-    budget = ride.ajustes.reel_segundos or cfg.reel_budget(eligible_seconds)
-    ride.selected = segments_mod.select(all_segments, budget)
+    ride.budget = ride.ajustes.reel_segundos or cfg.reel_budget(eligible_seconds)
+    ride.selected = segments_mod.select(all_segments, ride.budget)
 
     # La apertura y el cierre se buscan aparte, y despues de seleccionar: no
     # compiten por el presupuesto del reel ni se rankean contra la accion.
@@ -208,6 +242,23 @@ def analyse(ride_root: Path, cfg, on_progress=None) -> Ride:
         [f"intro: {b.note}" for b in intros] + missing + [f"final: {outro.note}"]
     )
 
+    # La apertura y el cierre se buscan sobre los mismos archivos de los que
+    # salieron los candidatos de accion, asi que pueden pisar un corte ya
+    # elegido: el cierre arranca en la ultima frenada, y si veniste rodando
+    # fuerte hasta ahi, ese tramo probablemente ya entro como accion. Pegados
+    # uno detras del otro serian el mismo metraje dos veces en el video final.
+    # Manda el extremo: es el que tiene sitio fijo en el video.
+    bookends = [b.segment for b in intros if b.segment is not None]
+    if outro.segment is not None:
+        bookends.append(outro.segment)
+    ride.selected, repeated = drop_repeated(ride.selected, bookends)
+    if repeated:
+        ride.bookend_notes.append(
+            f"quite {len(repeated)} corte(s) de accion que repetian metraje de "
+            "la apertura o del cierre: "
+            + ", ".join(f"{s.source.stem}@{s.start:.0f}s" for s in repeated)
+        )
+
     # Las aperturas van todas al frente para poder compararlas de una, y el
     # cierre al final. Su lugar es fijo: no es un orden cronologico, es la
     # forma del video.
@@ -243,7 +294,7 @@ def write_reports(ride: Ride, cfg) -> None:
         ],
         "extremos": ride.bookend_notes,
         "config": {
-            "presupuesto_reel_s": round(cfg.reel_budget(ride.total_raw_seconds()), 1),
+            "presupuesto_reel_s": round(ride.budget or cfg.reel_budget(ride.total_raw_seconds()), 1),
             "umbral_ride": round(ride.threshold, 1),
             "pre_roll": cfg.pre_roll,
             "post_roll": cfg.post_roll,
@@ -315,4 +366,7 @@ def resolve(library: Path, name: str | None) -> Path:
     rides = sorted((p for p in library.iterdir() if p.is_dir()), reverse=True)
     if not rides:
         raise FileNotFoundError(f"No hay rides en {library}.")
-    return rides[0]
+    # Una ingesta que falla deja la carpeta del ride creada y vacia. Sin esto
+    # esa carcasa pasa a ser "el ride mas reciente" y todos los comandos que
+    # corras sin nombre apuntan ahi en vez de al material de verdad.
+    return next((p for p in rides if source_files(p)), rides[0])
