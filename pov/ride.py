@@ -75,6 +75,11 @@ class Ride:
         return self.root / "final"
 
     @property
+    def shorts_dir(self) -> Path:
+        """Fase 2: los shorts verticales ya listos para subir."""
+        return self.root / "shorts"
+
+    @property
     def analysis_file(self) -> Path:
         return self.root / "analysis.json"
 

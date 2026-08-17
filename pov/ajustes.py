@@ -29,6 +29,19 @@ configuracion global ni afecte a los demas rides:
     # Cuanto material debe llevar el reel, en segundos. Sobreescribe el
     # calculo por porcentaje cuando el ride se recorta mucho.
     reel_segundos = 330
+
+    # Nombre prolijo del trail para el texto quemado de los shorts (Fase 2).
+    # Sin esto se usa una version title-case del nombre de la carpeta, que
+    # queda mal con siglas como "MTB".
+    nombre_trail = "Halpatiokee MTB Trail"
+
+    # Piso de puntaje de los shorts solo para este ride (Fase 2). En 0 manda
+    # el global de config.toml. Existe porque la escala del puntaje depende
+    # de si el archivo trae telemetria: con sensores un golpe llega a 100,
+    # pero sin ellos (un MP4 ya editado o exportado, que perdio el GPMF) el
+    # techo teorico es base_gain * 100 = 65 puntos. Con el global en 55 casi
+    # nada califica, y no es que el ride sea flojo: es otra escala.
+    shorts_min_score = 30
 """
 
 from __future__ import annotations
@@ -51,6 +64,9 @@ class Ajustes:
     descartar: list[tuple[str, float]] = field(default_factory=list)
     cierre: tuple[str, float] | None = None
     reel_segundos: float = 0.0
+    nombre_trail: str = ""
+    # 0 = usar el global de config.toml. Ver el docstring del modulo.
+    shorts_min_score: float = 0.0
 
     @property
     def activos(self) -> bool:
@@ -60,6 +76,8 @@ class Ajustes:
             or self.descartar
             or self.cierre
             or self.reel_segundos
+            or self.nombre_trail
+            or self.shorts_min_score
         )
 
     def excluido(self, path: Path) -> bool:
@@ -87,6 +105,10 @@ class Ajustes:
             lines.append(f"cierre elegido a mano: {self.cierre[0]} desde {self.cierre[1]:.1f}s")
         if self.reel_segundos:
             lines.append(f"largo del reel fijado en {self.reel_segundos:.0f}s")
+        if self.nombre_trail:
+            lines.append(f"nombre del trail para shorts: {self.nombre_trail}")
+        if self.shorts_min_score:
+            lines.append(f"piso de puntaje de shorts fijado en {self.shorts_min_score:.0f} pts")
         return lines
 
 
@@ -111,6 +133,8 @@ def load(ride_root: Path) -> Ajustes:
         descartar=descartar,
         cierre=_anchor(data.get("cierre", "")),
         reel_segundos=float(data.get("reel_segundos", 0.0)),
+        nombre_trail=str(data.get("nombre_trail", "")),
+        shorts_min_score=float(data.get("shorts_min_score", 0.0)),
     )
 
 

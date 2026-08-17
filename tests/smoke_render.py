@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from pov import config as config_mod
 from pov import ffmpeg, render, ride as ride_mod
+from pov import shorts as shorts_mod
 
 SAMPLE_RATE = 48000
 CLIP_SECONDS = 30
@@ -147,6 +148,58 @@ def main() -> int:
         check("el reel tiene audio", any(s.get("codec_type") == "audio" for s in ffmpeg.streams(output.reel)))
         check("se escribieron las etiquetas", (result.reel_dir / render.LABELS_NAME).exists())
         print(f"\n  Reel: {output.reel}")
+
+    print("\nFase 2: shorts...")
+    # Sin telemetria no se sabe a que escala cae el puntaje por audio; bajar
+    # el umbral a 0 aca prueba el camino de ffmpeg (recorte 9:16, fondo
+    # desenfocado, concat, texto quemado), no la calibracion del umbral.
+    # `shorts_min_seconds` tambien va a 0: los videos de prueba duran 30 s en
+    # total, asi que sus segmentos nunca llegarian al piso real de 15 s y no
+    # quedaria nada que renderizar. El piso se prueba en test_pipeline.py.
+    cfg_shorts = cfg.merged({"shorts_min_score": 0.0, "shorts_min_seconds": 0.0})
+    shorts = shorts_mod.select_shorts(result, cfg_shorts)
+    check("se armo al menos un short", len(shorts) > 0, f"{len(shorts)}")
+
+    if shorts:
+        outputs = shorts_mod.render_shorts(
+            result, shorts, cfg_shorts, use_nvenc=False,
+            on_progress=lambda i, n, name: print(f"  [{i}/{n}] {name}"),
+        )
+        check("se escribio un archivo por short", len(outputs) == len(shorts))
+        check(
+            "todos los shorts tienen contenido",
+            all(p.exists() and p.stat().st_size > 1000 for p in outputs),
+        )
+        if outputs:
+            info = ffmpeg.video_info(outputs[0])
+            check(
+                "el short sale en 1080x1920",
+                (info["width"], info["height"]) == (cfg.shorts_width, cfg.shorts_height),
+                f"{info['width']}x{info['height']}",
+            )
+            check(
+                "dura lo que suman sus clips",
+                abs(info["duration"] - shorts[0].duration) < 2.5,
+                f"{info['duration']:.1f}s vs {shorts[0].duration:.1f}s esperados",
+            )
+            check(
+                "el short tiene audio",
+                any(s.get("codec_type") == "audio" for s in ffmpeg.streams(outputs[0])),
+            )
+            check(
+                "ningun short supera el tope de plataforma",
+                all(s.duration <= cfg_shorts.shorts_max_seconds for s in shorts),
+            )
+        check(
+            "se escribio el manifiesto shorts.csv",
+            (result.shorts_dir / shorts_mod.MANIFEST_NAME).exists(),
+        )
+        check(
+            "no quedan .ass sueltos (se borran solos tras cada render)",
+            not list(result.shorts_dir.glob("*.ass")),
+            f"{list(result.shorts_dir.glob('*.ass'))}",
+        )
+        print(f"\n  Shorts: {result.shorts_dir}")
 
     print("\n" + "=" * 46)
     if failures:

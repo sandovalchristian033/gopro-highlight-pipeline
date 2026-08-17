@@ -221,6 +221,58 @@ air_gain = 0.62
 impact_gain = 0.69
 
 
+[shorts]
+# Piso de puntaje para que un segmento entre a un short. SIN CALIBRAR: en
+# Halpatiokee da los 5 mejores momentos del ride (69.6, 59.7, 57.4, 56.2,
+# 55.4). Ajustar despues de ver el primer lote real.
+#   - salen muy pocos shorts -> baja
+#   - salen shorts flojos    -> sube
+shorts_min_score = 55.0
+
+# Cuantos segmentos como maximo se pegan en un mismo short.
+shorts_max_clips = 3
+
+# Ventana de duracion util. El tope de plataforma son 59 s, pero Chris lo
+# bajo a 40 el 17-ago-2026 viendo los primeros lotes reales: mas alla el
+# short se hace largo para lo que entrega. El piso descarta los sobrantes de
+# un solo clip (el short #7 de JD Park duraba 7 s), demasiado cortos para
+# que alguien alcance a engancharse.
+#
+# Lo comodo esta entre 20 y 30 s. Estos dos numeros son provisionales: hay
+# que contrastarlos con la retencion real de YouTube/TikTok/Reels cuando
+# haya metricas, no salieron de datos todavia.
+shorts_min_seconds = 15.0
+shorts_max_seconds = 40.0
+
+# Cuanto se queda en pantalla cada linea del guion (o del texto automatico
+# de respaldo) antes de desaparecer -- fragmentos cortos, no parrafos.
+shorts_line_seconds = 2.2
+
+# Solo para el respaldo automatico (sin guion escrito a mano, ver
+# pov/shorts_guion.py): a cuantos segundos del final arranca la pregunta de
+# cierre.
+shorts_closing_seconds = 2.5
+
+# Lienzo vertical de salida.
+shorts_width = 1080
+shorts_height = 1920
+
+# Techo de bitrate del short, en Mbit/s (mismo problema que reel_max_mbps: el
+# CRF fija calidad pero no acota el tamaño, y el follaje en movimiento es
+# patologico para el encoder). Sin techo, los primeros shorts reales salieron
+# entre 34 y 48 Mbps: 1.1 GB por los 7 de JD Park. YouTube/TikTok reencodean
+# y recomiendan ~8-12 Mbps para 1080p vertical, asi que arriba de 12 solo se
+# gasta disco y tiempo de subida.
+shorts_max_mbps = 12.0
+
+# Cuanto del ancho original se conserva en el primer plano, centrado (el
+# resto del cuadro se rellena con una version desenfocada del video completo,
+# y ahi va el texto). Probado visualmente el 17-ago-2026 sobre Halpatiokee:
+# el recorte central puro perdia sensacion de velocidad, el cuadro completo
+# dejaba mucho vacio. 0.5 es el intermedio que Chris aprobo.
+shorts_crop_width_ratio = 0.5
+
+
 [render]
 reel_height = 1080
 

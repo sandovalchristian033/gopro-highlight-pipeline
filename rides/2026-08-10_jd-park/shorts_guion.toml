@@ -1,0 +1,88 @@
+# Guion escrito a mano para los shorts de JD Park (Fase 2).
+# Ver pov/shorts_guion.py para el formato y .claude/skills/mtb-clips/SKILL.md
+# para las reglas de tono. Ancla = climax_anchor de shorts_plan.json.
+#
+# Reescrito el 17-ago-2026 tras el cambio a orden descendente (el climax
+# abre el short en vez de cerrarlo): las lineas de abajo estan sincronizadas
+# a los offsets nuevos, no a los originales.
+
+[[shorts]]
+order = 1
+climax = "GX011111@38.4"
+alt_hook = "small air, big landing"
+lineas = [
+  { t = 0.0,  texto = "there's a little hop coming up" },
+  { t = 6.3,  texto = "there it is" },
+  { t = 6.7,  texto = "landing... mostly stuck it" },
+  { t = 18.3, texto = "this trail just keeps hitting" },
+  { t = 34.8, texto = "how many g's did that last one pull?" },
+]
+
+[[shorts]]
+order = 2
+climax = "GX011115@112.8"
+alt_hook = "hardest hit of the whole ride, right at the start"
+lineas = [
+  { t = 0.0,  texto = "this one's the hardest hit of the day" },
+  { t = 2.14, texto = "yep, that's the one" },
+  { t = 13.69, texto = "and it wasn't the only big one" },
+  { t = 25.8, texto = "still finding new lines through here" },
+  { t = 27.5, texto = "how many g's do you think that first one was?" },
+]
+
+[[shorts]]
+order = 3
+climax = "GX011116@49.2"
+alt_hook = "back to back hits to start this one"
+lineas = [
+  { t = 0.0,  texto = "double hit right off the bat" },
+  { t = 2.0,  texto = "there's one" },
+  { t = 2.5,  texto = "aaand two" },
+  { t = 11.5, texto = "this rock garden isn't done with me" },
+  { t = 22.3, texto = "which hit looked worst to you?" },
+]
+
+[[shorts]]
+order = 4
+climax = "GX011119@8.6"
+alt_hook = "two massive hits right at the start"
+lineas = [
+  { t = 0.0,  texto = "two of the biggest hits back to back" },
+  { t = 4.01, texto = "there's the first" },
+  { t = 4.71, texto = "aaand the second" },
+  { t = 17.01, texto = "still bumpy through here" },
+  { t = 25.6, texto = "worth a rewatch or nah?" },
+]
+
+[[shorts]]
+order = 5
+climax = "GX011124@3.4"
+alt_hook = "this section just keeps going"
+lineas = [
+  { t = 0.0,  texto = "long section, but it starts rough" },
+  { t = 5.96, texto = "there's the hit" },
+  { t = 13.0, texto = "settles into a grind for a while" },
+  { t = 41.41, texto = "and there's still one more waiting" },
+  { t = 43.5, texto = "this stretch wear you out too?" },
+]
+
+[[shorts]]
+order = 6
+climax = "GX011134@129.1"
+alt_hook = "this whole stretch is just nonstop chatter"
+lineas = [
+  { t = 0.0,  texto = "no big drops here, just constant chatter" },
+  { t = 3.11, texto = "this rock garden does not stop" },
+  { t = 15.85, texto = "still rattling around back here" },
+  { t = 34.7,  texto = "arms are done after this one" },
+  { t = 36.0,  texto = "worse than it looks or about right?" },
+]
+
+[[shorts]]
+order = 7
+climax = "GX011134@224.2"
+alt_hook = "small hit, still felt like a lot"
+lineas = [
+  { t = 0.0,  texto = "short clip but it got me" },
+  { t = 2.26, texto = "yep, there it is" },
+]

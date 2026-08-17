@@ -190,6 +190,51 @@ class Config:
             return self.target_reel_seconds
         return max(30.0, self.target_reel_ratio * source_seconds)
 
+    # --- shorts 9:16 --------------------------------------------------------
+    # Piso de puntaje para que un segmento entre a un short. Distinto de
+    # `min_segment_score` (que es el piso del reel del video largo): el short
+    # es lo mejor de lo mejor, no todo lo que vale la pena revisar. SIN
+    # CALIBRAR: en Halpatiokee da los 5 mejores momentos del ride. Primer
+    # candidato a tocar despues de ver el primer lote real de shorts.
+    shorts_min_score: float = 55.0
+    # Cuantos segmentos como maximo se pegan en un mismo short.
+    shorts_max_clips: int = 3
+    # Ventana de duracion util de un short. El tope de plataforma son 59 s,
+    # pero Chris lo bajo a 40 el 17-ago-2026 mirando los primeros lotes
+    # reales: mas alla de eso el short se hace largo para lo que entrega.
+    # El piso descarta los sobrantes de un solo clip, demasiado cortos para
+    # que alguien alcance a engancharse. Lo comodo esta entre 20 y 30 s; hay
+    # que revisar estos dos numeros contra las metricas de retencion de
+    # YouTube/TikTok/Reels cuando haya datos, no son definitivos.
+    shorts_min_seconds: float = 15.0
+    shorts_max_seconds: float = 40.0
+    # Cuanto se queda en pantalla cada linea del guion (o del texto
+    # automatico de respaldo) antes de desaparecer -- fragmentos cortos,
+    # legibles en un vistazo, no parrafos.
+    shorts_line_seconds: float = 2.2
+    # Solo para el respaldo automatico (sin guion escrito a mano): a cuantos
+    # segundos del final arranca la pregunta de cierre.
+    shorts_closing_seconds: float = 2.5
+    # Lienzo vertical de salida.
+    shorts_width: int = 1080
+    shorts_height: int = 1920
+    # Techo de bitrate del short, en Mbit/s. Mismo problema que el reel (ver
+    # `reel_max_mbps`): el CRF fija calidad pero no acota el tamaño, y el
+    # follaje POV en movimiento es patologico para el encoder. Sin techo, los
+    # primeros shorts reales salieron entre 34 y 48 Mbps -- 1.1 GB por 7
+    # shorts de JD Park. Ninguna plataforma conserva eso: YouTube/TikTok
+    # reencodean y recomiendan ~8-12 Mbps para 1080p vertical, asi que por
+    # encima de 12 solo se gasta disco y tiempo de subida.
+    shorts_max_mbps: float = 12.0
+    # Cuanto del ancho original se conserva en el primer plano, centrado.
+    # Probado visualmente sobre Halpatiokee el 17-ago-2026: ni el recorte
+    # central puro (0.316 -- pierde la sensacion de velocidad, se ven muy
+    # pocos laterales) ni el cuadro completo (1.0 -- deja mucho vacio arriba
+    # y abajo). 0.5 quedo como el punto intermedio que Chris aprobo. El resto
+    # del cuadro se rellena con una version desenfocada del video completo, y
+    # ahi es donde va el texto.
+    shorts_crop_width_ratio: float = 0.5
+
     # --- rendering --------------------------------------------------------
     reel_height: int = 1080
     clip_quality: int = 20  # CQ/CRF for the clean clips you edit with

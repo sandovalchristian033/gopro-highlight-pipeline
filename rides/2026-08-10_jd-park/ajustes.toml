@@ -1,0 +1,5 @@
+# Decisiones manuales de Chris sobre este ride.
+
+# Nombre prolijo para el texto quemado de los shorts (Fase 2). El slug de la
+# carpeta ("jd-park") queda mal en title-case ("Jd Park").
+nombre_trail = "JD Park"

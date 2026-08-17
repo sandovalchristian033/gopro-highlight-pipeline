@@ -32,3 +32,7 @@ cierre = "GX011151@14.0"
 # lo bueno de la parte de pecho, que son unos 250 s; esto deja algo de margen
 # para que entren un par de candidatos mas.
 reel_segundos = 290
+
+# Nombre prolijo para el texto quemado de los shorts (Fase 2). El slug de la
+# carpeta ("halpatiokee-mtb-trail") queda mal con la sigla MTB en title-case.
+nombre_trail = "Halpatiokee MTB Trail"

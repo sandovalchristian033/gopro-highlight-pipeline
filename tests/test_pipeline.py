@@ -23,6 +23,8 @@ from pov import config as config_mod
 from pov import ffmpeg as ffmpeg_mod
 from pov import gpmf, render as render_mod, ride as ride_mod
 from pov import segments as segments_mod, signals as signals_mod
+from pov import shorts as shorts_mod, shorts_guion as shorts_guion_mod, shorts_textos
+from pov.signals import Event
 from pov.telemetry import GRAVITY, Series, Telemetry
 
 PASSED: list[str] = []
@@ -573,7 +575,10 @@ def test_cleanup() -> None:
 
     with tempfile.TemporaryDirectory() as folder:
         ride = Path(folder) / "2026-08-16_prueba"
-        for sub, count in (("raw", 3), ("clips", 4), ("reel", 1), (".huellas", 2), ("final", 1)):
+        for sub, count in (
+            ("raw", 3), ("clips", 4), ("reel", 1), (".huellas", 2),
+            ("final", 1), ("shorts", 2),
+        ):
             (ride / sub).mkdir(parents=True)
             for i in range(count):
                 (ride / sub / f"f{i}.bin").write_bytes(b"x" * 1000)
@@ -590,11 +595,13 @@ def test_cleanup() -> None:
         )
         check("todo lo propuesto se regenera", all(i.regenerable for i in items))
         check("el video final no entra en la barrida", "final" not in labels, f"{labels}")
+        check("los shorts tampoco entran en la barrida", "shorts" not in labels, f"{labels}")
         check("ordena por tamano", [i.size for i in items] == sorted((i.size for i in items), reverse=True))
 
         freed = cleanup_mod.remove(items)
         check("libera lo que dijo", freed == 7000, f"{freed} bytes")
         check("el video final sobrevive", (ride / "final" / "f0.bin").exists())
+        check("los shorts sobreviven", (ride / "shorts" / "f0.bin").exists())
         check("los originales siguen ahi", len(list((ride / "raw").iterdir())) == 3)
         check("el analisis sobrevive", (ride / "analysis.json").exists())
         check("la lista de cortes sobrevive", (ride / "cortes.csv").exists())
@@ -604,6 +611,10 @@ def test_cleanup() -> None:
         check(
             "con --incluir-final si aparece",
             any(i.path.name == "final" for i in con_final),
+        )
+        check(
+            "y los shorts van con la misma bandera (son entregables, no revision)",
+            any(i.path.name == "shorts" for i in con_final),
         )
 
         risky = cleanup_mod.survey(ride, include_raw=True)
@@ -698,7 +709,8 @@ def test_ajustes() -> None:
             'aperturas = ["GX011145"]\n'
             'descartar = ["GX011146@87.8", "roto"]\n'
             'cierre = "GX011151@14.0"\n'
-            "reel_segundos = 290\n",
+            "reel_segundos = 290\n"
+            "shorts_min_score = 30\n",
             encoding="utf-8",
         )
         aj = ajustes_mod.load(root)
@@ -709,6 +721,7 @@ def test_ajustes() -> None:
         check("lee la apertura elegida", aj.aperturas == ["GX011145"])
         check("lee el largo del reel", aj.reel_segundos == 290)
         check("lee el cierre elegido", aj.cierre == ("GX011151", 14.0), f"{aj.cierre}")
+        check("lee el piso de puntaje de shorts", aj.shorts_min_score == 30.0)
 
         check("descarta el corte anotado", aj.descartado(Path("GX011146.MP4"), 87.8))
         check(
@@ -979,6 +992,373 @@ def test_space_check() -> None:
         check("ignora el ride vacio de una ingesta fallida", elegido == bueno, f"{elegido.name}")
 
 
+def test_shorts() -> None:
+    """Fase 2: umbral, agrupado, orden descendente y nombre de archivo.
+
+    El agrupado tiene dos topes independientes -- `shorts_max_clips` y
+    `shorts_max_seconds` -- y hay que probarlos por separado, porque un short
+    que se corta por duracion antes de llegar al tope de clips (o al reves)
+    es exactamente el caso que un solo ejemplo no distingue.
+    """
+    print("\n[19] Fase 2: shorts")
+
+    def seg(name: str, start: float, dur: float, score: float, role: str = "") -> segments_mod.Segment:
+        return segments_mod.Segment(
+            source=Path(name), start=start, end=start + dur, score=score,
+            peak_time=start, role=role,
+        )
+
+    def fake_ride(selected: list[segments_mod.Segment], trail: str = "Test Trail") -> ride_mod.Ride:
+        return ride_mod.Ride(
+            root=Path("fake-ride"),
+            selected=selected,
+            ajustes=ajustes_mod.Ajustes(nombre_trail=trail),
+        )
+
+    cfg = config_mod.load()
+
+    # --- umbral: descarta lo flojo y lo que es apertura/cierre -------------
+    # `shorts_min_seconds: 0` en los casos de agrupado: lo que se prueba aca
+    # es el umbral de puntaje y los topes, no el piso de duracion (que tiene
+    # su propio caso mas abajo). Sin esto, clips de prueba de 3-8 s caerian
+    # por el piso y el caso dejaria de medir lo que dice medir.
+    cfg = cfg.merged({"shorts_min_seconds": 0.0})
+    cfg_umbral = cfg.merged({"shorts_min_score": 50.0})
+    ride = fake_ride([
+        seg("GX01.MP4", 0.0, 8.0, 60.0),
+        seg("GX01.MP4", 20.0, 8.0, 40.0),   # bajo el umbral
+        seg("GX01.MP4", 40.0, 6.0, 55.0, role="intro"),  # no es accion
+    ])
+    cortos = shorts_mod.select_shorts(ride, cfg_umbral)
+    check(
+        "el umbral descarta lo flojo y lo que no es accion",
+        len(cortos) == 1 and len(cortos[0].clips) == 1 and cortos[0].clips[0].score == 60.0,
+        f"{[(s.duration, len(s.clips)) for s in cortos]}",
+    )
+
+    # --- tope de duracion: cierra el grupo aunque quepan mas clips ---------
+    cfg_dur = cfg.merged({"shorts_min_score": 50.0, "shorts_max_clips": 3, "shorts_max_seconds": 20.0})
+    ride = fake_ride([
+        seg("GX01.MP4", 0.0, 8.0, 60.0),
+        seg("GX01.MP4", 10.0, 8.0, 65.0),   # 16s, todavia cabe
+        seg("GX01.MP4", 20.0, 8.0, 70.0),   # 24s > 20: no cabe, abre grupo nuevo
+    ])
+    cortos = shorts_mod.select_shorts(ride, cfg_dur)
+    check(
+        "el tope de duracion parte el grupo aunque el de clips no se llene",
+        [len(s.clips) for s in cortos] == [2, 1],
+        f"{[len(s.clips) for s in cortos]}",
+    )
+    check(
+        "el grupo cerrado no supera shorts_max_seconds",
+        all(s.duration <= 20.0 for s in cortos),
+        f"{[s.duration for s in cortos]}",
+    )
+
+    # --- tope de clips: cierra el grupo aunque sobre tiempo -----------------
+    cfg_clips = cfg.merged({"shorts_min_score": 50.0, "shorts_max_clips": 2, "shorts_max_seconds": 59.0})
+    ride = fake_ride([
+        seg("GX01.MP4", 0.0, 3.0, 60.0),
+        seg("GX01.MP4", 5.0, 3.0, 61.0),
+        seg("GX01.MP4", 10.0, 3.0, 62.0),   # el grupo ya tiene 2: abre uno nuevo
+    ])
+    cortos = shorts_mod.select_shorts(ride, cfg_clips)
+    check(
+        "el tope de clips parte el grupo aunque sobre presupuesto de tiempo",
+        [len(s.clips) for s in cortos] == [2, 1],
+        f"{[len(s.clips) for s in cortos]}",
+    )
+
+    # --- orden descendente dentro del grupo: el mas fuerte abre ------------
+    ride = fake_ride([
+        seg("GX01.MP4", 0.0, 5.0, 70.0),
+        seg("GX01.MP4", 10.0, 5.0, 55.0),
+        seg("GX01.MP4", 20.0, 5.0, 62.0),
+    ])
+    cortos = shorts_mod.select_shorts(ride, cfg_dur)
+    scores = [c.score for c in cortos[0].clips]
+    check(
+        "dentro del grupo los clips quedan de mas fuerte a mas flojo",
+        scores == sorted(scores, reverse=True),
+        f"{scores}",
+    )
+    check("el climax es el primero del grupo, el de mayor puntaje", cortos[0].climax.score == max(scores))
+    check("el puntaje del short es el del climax, no un promedio", cortos[0].score == max(scores))
+
+    # --- piso de duracion: el sobrante corto no llega a ser short ----------
+    # Caso real: el short #7 de JD Park era un clip suelto de 7 s. Nadie
+    # alcanza a engancharse, asi que se descarta -- pero avisando, porque es
+    # accion real que se tira.
+    cfg_piso = cfg.merged({
+        "shorts_min_score": 50.0, "shorts_max_clips": 2,
+        "shorts_max_seconds": 40.0, "shorts_min_seconds": 15.0,
+    })
+    ride = fake_ride([
+        seg("GX01.MP4", 0.0, 10.0, 60.0),
+        seg("GX01.MP4", 20.0, 10.0, 65.0),   # grupo 1 = 20s, pasa el piso
+        seg("GX01.MP4", 40.0, 7.0, 70.0),    # sobrante de 7s: no llega a 15
+    ])
+    descartados: list[float] = []
+    cortos = shorts_mod.select_shorts(
+        ride, cfg_piso, on_discard=lambda members, total: descartados.append(total)
+    )
+    check(
+        "el sobrante corto no se convierte en short",
+        len(cortos) == 1 and len(cortos[0].clips) == 2,
+        f"{[len(s.clips) for s in cortos]}",
+    )
+    check(
+        "y avisa cuanto descarto en vez de tirarlo en silencio",
+        descartados == [7.0],
+        f"{descartados}",
+    )
+    check(
+        "ningun short queda bajo el piso",
+        all(s.duration >= cfg_piso.shorts_min_seconds for s in cortos),
+        f"{[s.duration for s in cortos]}",
+    )
+
+    # Renumerar despues de descartar, no antes: `order` es la clave que usa
+    # shorts_guion.toml, y un hueco (1, 3, 4...) desalinearia todo el guion.
+    ride = fake_ride([
+        seg("GX01.MP4", 0.0, 5.0, 60.0),     # grupo 1 = 5s, se cae por corto
+        seg("GX01.MP4", 20.0, 20.0, 65.0),   # grupo 2 = 20s, sobrevive
+        seg("GX01.MP4", 50.0, 20.0, 70.0),   # grupo 3 = 20s, sobrevive
+    ])
+    cortos = shorts_mod.select_shorts(ride, cfg_piso)
+    check(
+        "los orden quedan 1..N sin huecos tras descartar",
+        [s.order for s in cortos] == [1, 2],
+        f"{[s.order for s in cortos]}",
+    )
+
+    # --- piso de puntaje por ride: manda sobre el global -------------------
+    # Un ride importado de un MP4 ya editado no trae telemetria, y ahi el
+    # techo de puntaje es base_gain*100 = 65, no 100. Con el global en 55 casi
+    # nada calificaria, y no seria porque el ride es flojo.
+    cfg_score = cfg.merged({"shorts_min_score": 55.0, "shorts_max_seconds": 40.0})
+    sin_telemetria = [
+        seg("GX01.MP4", 0.0, 10.0, 42.0),
+        seg("GX01.MP4", 20.0, 10.0, 38.0),
+    ]
+    ride = ride_mod.Ride(
+        root=Path("fake-ride"), selected=sin_telemetria,
+        ajustes=ajustes_mod.Ajustes(nombre_trail="Test"),
+    )
+    check(
+        "con el global de 55 un ride sin telemetria no da nada",
+        shorts_mod.select_shorts(ride, cfg_score) == [],
+    )
+    ride_ajustado = ride_mod.Ride(
+        root=Path("fake-ride"), selected=sin_telemetria,
+        ajustes=ajustes_mod.Ajustes(nombre_trail="Test", shorts_min_score=30.0),
+    )
+    cortos_ajustados = shorts_mod.select_shorts(ride_ajustado, cfg_score)
+    check(
+        "el piso de ajustes.toml rescata ese mismo ride",
+        len(cortos_ajustados) == 1 and len(cortos_ajustados[0].clips) == 2,
+        f"{[len(s.clips) for s in cortos_ajustados]}",
+    )
+
+    # --- nombre de archivo ---------------------------------------------------
+    cortos = shorts_mod.select_shorts(fake_ride([
+        seg("GX01.MP4", 0.0, 5.0, 70.0),
+        seg("GX01.MP4", 10.0, 5.0, 55.0),
+        seg("GX01.MP4", 20.0, 5.0, 62.0),
+    ]), cfg_dur)
+    corto = cortos[0]
+    nombre = shorts_mod.short_filename(corto.order, corto)
+    check(
+        "el nombre lleva orden, puntaje y termina en _short.mp4",
+        nombre.startswith(f"{corto.order:02d}_") and nombre.endswith("_short.mp4"),
+        nombre,
+    )
+
+    # --- el .ass parte las lineas largas en vez de cortarlas ---------------
+    # Con WrapStyle 2 libass no ajusta: "how many g's do you think that first
+    # one was?" salia como "w many g's ... that first one w", cortada por los
+    # dos lados, en el short #2 de JD Park.
+    ass = shorts_mod.build_short_labels(cortos[0], cfg)
+    check(
+        "el .ass pide ajuste automatico de linea (WrapStyle 0)",
+        "WrapStyle: 0" in ass,
+        [l for l in ass.splitlines() if "WrapStyle" in l],
+    )
+
+    # --- respaldo del nombre del trail sin ajustes.toml ---------------------
+    check(
+        "sin nombre_trail, prettifica el slug de la carpeta",
+        shorts_mod._pretty_trail("2026-08-16_halpatiokee-mtb-trail") == "Halpatiokee Mtb Trail",
+    )
+
+    # --- texto: categoria por tipo de evento, prioridad crash > air > impact ---
+    base = dict(source=Path("GX01.MP4"), start=0.0, end=10.0, score=60.0, peak_time=1.0)
+    solo_impacto = segments_mod.Segment(**base, events=[Event("impact", 1.0, 1.2, 3.5)])
+    con_caida = segments_mod.Segment(
+        **base,
+        events=[Event("impact", 1.0, 1.2, 3.5), Event("crash", 1.0, 4.0, 5.0)],
+    )
+    impacto_fuerte = segments_mod.Segment(**base, events=[Event("impact", 1.0, 1.2, 7.0)])
+    solo_velocidad = segments_mod.Segment(**base, events=[], peak_speed_kmh=25.0)
+    sin_nada = segments_mod.Segment(**base, events=[])
+
+    check("impacto moderado -> categoria impact", shorts_textos.category_for(solo_impacto) == "impact")
+    check("caida manda sobre impacto", shorts_textos.category_for(con_caida) == "crash")
+    check(
+        "impacto fuerte (>=6g) -> categoria impact_big",
+        shorts_textos.category_for(impacto_fuerte) == "impact_big",
+    )
+    check("sin eventos pero con velocidad -> categoria speed", shorts_textos.category_for(solo_velocidad) == "speed")
+    check("sin nada -> categoria generic", shorts_textos.category_for(sin_nada) == "generic")
+
+    # --- texto: determinista, y {trail} se completa -------------------------
+    hook1 = shorts_textos.pick_hook(solo_impacto, "Test Trail")
+    hook2 = shorts_textos.pick_hook(solo_impacto, "Test Trail")
+    check("el hook es el mismo en dos corridas del mismo clip", hook1 == hook2, f"{hook1!r} vs {hook2!r}")
+    check("el hook cae en la lista de plantillas de su categoria", hook1 in [
+        t.format(trail="Test Trail") if "{trail}" in t else t
+        for t in shorts_textos.HOOK_TEMPLATES["impact"]
+    ])
+
+    speed_hook = shorts_textos.pick_hook(solo_velocidad, "Halpatiokee MTB Trail")
+    check("el {trail} de la plantilla queda relleno, no literal", "{trail}" not in speed_hook)
+
+    cierre1 = shorts_textos.pick_closing(solo_impacto, "Test Trail")
+    cierre2 = shorts_textos.pick_closing(solo_impacto, "Test Trail")
+    check("el cierre es el mismo en dos corridas del mismo clip", cierre1 == cierre2)
+
+
+def test_shorts_guion() -> None:
+    """El guion escrito a mano: anclado al climax, nunca aplicado a ciegas.
+
+    El riesgo real es que el agrupado cambie (se toco `shorts_min_score`, se
+    reanalizo con otro material) y un guion viejo se pegue al short
+    equivocado sin avisar -- exactamente la clase de bug silencioso que
+    `render.clip_is_current` existe para evitar en Fase 1. Por eso el guion
+    ancla cada entrada a su clip climax, y quien lo aplica valida esa ancla.
+    """
+    print("\n[20] Guion escrito a mano para los shorts")
+    import tempfile
+
+    def seg(name: str, start: float, dur: float, score: float) -> segments_mod.Segment:
+        return segments_mod.Segment(
+            source=Path(name), start=start, end=start + dur, score=score, peak_time=start,
+        )
+
+    with tempfile.TemporaryDirectory() as folder:
+        root = Path(folder)
+        (root / shorts_guion_mod.GUION_FILE).write_text(
+            """
+[[shorts]]
+order = 1
+climax = "GX011147@172.9"
+alt_hook = "watch what the roots do here"
+lineas = [
+  { t = 9.8, texto = "did NOT see that root" },
+  { t = 0.0, texto = "this section humbled me last time" },
+]
+
+[[shorts]]
+order = 2
+climax = "GX011150@999.0"
+lineas = [ { t = 0.0, texto = "texto que no deberia aplicarse" } ]
+""",
+            encoding="utf-8",
+        )
+
+        entries = shorts_guion_mod.load(root)
+        check("carga una entrada por short anotado", set(entries.keys()) == {1, 2}, f"{entries.keys()}")
+        check(
+            "las lineas quedan ordenadas por tiempo aunque el TOML no lo estuviera",
+            [t for t, _ in entries[1].lineas] == [0.0, 9.8],
+        )
+
+        climax_ok = seg("GX011147.MP4", 172.9, 10.45, 69.6)
+        climax_movido = seg("GX011147.MP4", 174.2, 10.45, 69.6)  # reanalisis lo corrio 1.3s
+        climax_otro = seg("GX011150.MP4", 41.1, 13.35, 57.4)
+
+        check("el ancla coincide dentro de la tolerancia", shorts_guion_mod.matches(entries[1], climax_ok))
+        check(
+            "un corrimiento chico por reanalisis sigue contando como el mismo climax",
+            shorts_guion_mod.matches(
+                shorts_guion_mod.GuionCorto(anchor="GX011147@172.9", lineas=[]), climax_movido
+            ),
+        )
+        check(
+            "un climax de otro archivo no coincide",
+            not shorts_guion_mod.matches(entries[1], climax_otro),
+        )
+        check(
+            "un ancla vacia nunca coincide",
+            not shorts_guion_mod.matches(shorts_guion_mod.GuionCorto(anchor="", lineas=[]), climax_ok),
+        )
+
+        cfg = config_mod.load()
+        corto1 = shorts_mod.Short(clips=[climax_ok], order=1)
+        corto1.lines = shorts_mod._fallback_lines(corto1, "Test Trail", cfg)
+        nombre_automatico = shorts_mod.short_filename(1, corto1)
+
+        corto2 = shorts_mod.Short(clips=[climax_otro], order=2)
+        corto2.lines = shorts_mod._fallback_lines(corto2, "Test Trail", cfg)
+
+        avisos = shorts_mod.apply_guion(
+            ride_mod.Ride(root=root, selected=[]), [corto1, corto2]
+        )
+
+        check("el short con climax vigente adopta las lineas del guion", corto1.guion, f"{corto1.guion}")
+        check(
+            "y las lineas son las del guion, no las automaticas",
+            corto1.lines == [(0.0, "this section humbled me last time"), (9.8, "did NOT see that root")],
+            f"{corto1.lines}",
+        )
+        check("se lleva tambien el alt_hook", corto1.alt_hook == "watch what the roots do here")
+        check(
+            "el short cuyo climax ya no coincide se queda con el texto automatico",
+            not corto2.guion,
+        )
+        check("y avisa en vez de fallar en silencio", len(avisos) == 1 and "#2" in avisos[0], f"{avisos}")
+
+        check(
+            "el nombre de archivo cambia cuando el texto cambia (invalida el render viejo)",
+            shorts_mod.short_filename(1, corto1) != nombre_automatico,
+        )
+
+    # --- write_plan: offsets relativos al inicio del short, no del archivo crudo ---
+    with tempfile.TemporaryDirectory() as folder:
+        import json
+
+        ride = ride_mod.Ride(root=Path(folder), selected=[])
+        clip_a = segments_mod.Segment(
+            source=Path("GX01.MP4"), start=10.0, end=18.0, score=69.6, peak_time=14.0,
+        )
+        clip_b = segments_mod.Segment(
+            source=Path("GX02.MP4"), start=100.0, end=110.45, score=50.0, peak_time=100.9,
+            events=[Event("impact", 100.9, 101.1, 6.2)],
+        )
+        corto = shorts_mod.Short(clips=[clip_a, clip_b], order=1)
+        plan_path = shorts_guion_mod.write_plan(ride, [corto])
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+
+        entry = plan["shorts"][0]
+        check("el plan trae un short con dos clips", len(entry["clips"]) == 2)
+        check(
+            "el segundo clip arranca donde termina el primero (8s)",
+            entry["clips"][1]["offset_start"] == 8.0,
+            f"{entry['clips'][1]['offset_start']}",
+        )
+        evento = entry["clips"][1]["events"][0]
+        check(
+            "el evento queda en el eje de tiempo del short, no del archivo crudo",
+            abs(evento["offset_start"] - 8.9) < 1e-6,
+            f"{evento['offset_start']}",
+        )
+        check(
+            "el ancla del climax es la del clip mas fuerte del grupo",
+            entry["climax_anchor"] == "GX01@10.0",
+            entry["climax_anchor"],
+        )
+
+
 def main() -> int:
     print("Validando el motor con datos sinteticos")
     print("=" * 46)
@@ -1001,6 +1381,8 @@ def main() -> int:
     test_no_repeated_footage()
     test_reported_budget()
     test_space_check()
+    test_shorts()
+    test_shorts_guion()
 
     print("\n" + "=" * 46)
     print(f"{len(PASSED)} OK, {len(FAILED)} fallas")

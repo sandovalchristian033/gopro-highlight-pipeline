@@ -14,6 +14,12 @@ reproducible, but it is the file Chris uploads, and it used to live inside
 `reel/` -- which means the command whose whole job is "free space now that you
 are done" would have deleted the deliverable. Being technically regenerable is
 not a good enough reason to sweep away the thing the ride was for.
+
+`shorts/` (Fase 2) is in that same category and for the same reason: son
+entregables, no material de revision. Rehacerlos no cuesta solo tiempo de
+render -- el texto quemado sale de `shorts_guion.toml`, escrito a mano, y hay
+que revisar que siga cuadrando. Por eso van detras de la misma bandera que
+`final/` y no entran en la barrida por defecto.
 """
 
 from __future__ import annotations
@@ -60,6 +66,9 @@ def survey(
     if include_final:
         candidates.append(
             ("final", "VIDEO FINAL", True, "es el que subes; vuelve con: run.py completo")
+        )
+        candidates.append(
+            ("shorts", "SHORTS 9:16", True, "los que subes; vuelven con: run.py shorts")
         )
     if include_raw:
         candidates.append(

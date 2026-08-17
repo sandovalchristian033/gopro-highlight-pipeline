@@ -8,14 +8,19 @@
 *.lrv
 *.LRV
 
-# La libreria de rides queda fuera, con una excepcion: `ajustes.toml` si se
-# guarda. Son las decisiones manuales de Chris sobre cada ride, pesan nada, y
-# no se deducen de ningun otro sitio. Se escribe carpeta por carpeta porque git
-# no puede rescatar un archivo que esta dentro de un directorio ya ignorado.
+# La libreria de rides queda fuera, con dos excepciones: `ajustes.toml` (las
+# decisiones manuales de Chris sobre cada ride) y `shorts_guion.toml` (el
+# guion de texto de los shorts, escrito a mano por Claude -- ver
+# pov/shorts_guion.py). Los dos pesan nada y no se deducen de ningun otro
+# sitio; todo lo demas de shorts/ (los .mp4, shorts.csv, shorts_plan.json) se
+# regenera solo y no hace falta versionarlo. Se escribe carpeta por carpeta
+# porque git no puede rescatar un archivo que esta dentro de un directorio ya
+# ignorado.
 /rides/*
 !/rides/*/
 /rides/*/*
 !/rides/*/ajustes.toml
+!/rides/*/shorts_guion.toml
 
 __pycache__/
 *.pyc

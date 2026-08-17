@@ -1,0 +1,34 @@
+# Guion escrito a mano por Claude (17-ago-2026), siguiendo el prompt de tono
+# de Chris y el timing real de rides/2026-08-16_halpatiokee-mtb-trail/shorts/shorts_plan.json.
+#
+# Reescrito el 17-ago-2026 tras el cambio a orden descendente (el climax
+# abre el short en vez de cerrarlo): las lineas de abajo estan sincronizadas
+# a los offsets nuevos, no a los originales.
+#
+# Cada short se ancla a su clip climax (`climax`); si un reanalisis cambia el
+# agrupado, `apply_guion` deja de aplicar esta entrada y avisa en vez de
+# quemar texto en el momento equivocado. Ver pov/shorts_guion.py.
+
+[[shorts]]
+order = 1
+climax = "GX011147@172.9"
+alt_hook = "roots really testing me today"
+lineas = [
+  { t = 0.0,  texto = "here's the one that got me" },
+  { t = 3.05, texto = "yep, there it is" },
+  { t = 5.44, texto = "and that's twice" },
+  { t = 17.8, texto = "rest of the trail still bites a little" },
+  { t = 29.4, texto = "how bad did that look from here?" },
+]
+
+[[shorts]]
+order = 2
+climax = "GX011150@41.1"
+alt_hook = "fastest lap I've had on this trail"
+lineas = [
+  { t = 0.0,  texto = "wasn't planning to go this fast" },
+  { t = 1.7,  texto = "hanging on through here" },
+  { t = 13.35, texto = "pace finally comes down a bit" },
+  { t = 23.16, texto = "still faster than I usually ride" },
+  { t = 29.0, texto = "did that look as fast as it felt?" },
+]

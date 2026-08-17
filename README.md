@@ -314,6 +314,47 @@ python run.py ingesta --desde "C:\ruta\a\los\videos" --seguir
 
 Sin argumento de ride, todos los comandos usan el ride mas reciente.
 
+## Shorts 9:16 (Fase 2)
+
+Una vez que el video largo de un ride ya esta aprobado, `run.py shorts` arma
+los shorts verticales de punta a punta -- recorte, agrupado, texto quemado,
+todo -- sin pasar por CapCut:
+
+```bash
+python run.py shorts
+```
+
+Sale en `rides/<ride>/shorts/`: un `.mp4` por short (1080x1920) mas
+`shorts.csv` con el detalle de cada uno (clips de origen, duracion, puntaje,
+texto). Documentacion completa en el skill `mtb-clips`
+(`.claude/skills/mtb-clips/SKILL.md`), separado a proposito del skill de
+Fase 1 (`mtb-editor`).
+
+Como arma cada short:
+
+1. Toma los segmentos de `ride.selected` que pasan `shorts_min_score`
+   (`config.toml`, seccion `[shorts]`) -- todos los que califiquen, sin techo
+   fijo de cantidad.
+2. Los agrupa de 2 o 3 en 3 (`shorts_max_clips`), sumando duracion hasta
+   `shorts_max_seconds` (40 s). Los grupos que no llegan a
+   `shorts_min_seconds` (15 s) se descartan avisando: un sobrante de un solo
+   clip corto no le da tiempo a nadie de engancharse.
+3. Dentro de cada grupo, ordena por puntaje **descendente**: el mas fuerte
+   abre como climax y el resto sigue despues -- a diferencia del video
+   largo, que preserva el orden cronologico del ride. La retencion se juega
+   en los primeros 2-3 segundos, asi que la mejor accion va primero.
+4. Quema un hook al abrir y una pregunta de cierre al final
+   (`pov/shorts_textos.py`, en ingles), elegidos de una biblioteca local por
+   tipo de evento con seleccion determinista -- nunca al azar, y nunca
+   llamando a un modelo en tiempo de render.
+
+El encuadre 9:16 no es un recorte central simple: se probo visualmente contra
+el recorte central puro y el cuadro completo con barras antes de decidir. Gano
+un intermedio (`shorts_crop_width_ratio = 0.5`) que conserva mas sensacion de
+velocidad que el recorte central y menos vacio que el cuadro completo,
+rellenando los margenes con un fondo desenfocado del mismo video -- ahi es
+donde cae el texto.
+
 ## Ajustes
 
 Todo se tunea en [`config.toml`](config.toml). Los que mas vas a querer tocar
@@ -363,6 +404,8 @@ Para que funcione bien de verdad, en la GoPro: **Preferencias > Regional > GPS: 
 | `pov/segments.py` | convierte la curva en segmentos cortables y los rankea |
 | `pov/ride.py` | orquesta un ride completo y escribe los reportes |
 | `pov/render.py` | renderiza los clips limpios y el reel etiquetado |
+| `pov/shorts.py` | Fase 2: agrupa los mejores momentos en shorts 9:16 y los renderiza |
+| `pov/shorts_textos.py` | biblioteca de hooks y preguntas de cierre para los shorts |
 | `pov/ingest.py` | copia desde tarjeta SD, desde la camara por USB, o desde carpeta |
 | `pov/ffmpeg.py` | wrappers de ffmpeg/ffprobe, deteccion de NVENC |
 | `pov/bookends.py` | la apertura y el cierre, por reglas de velocidad propias |
@@ -373,6 +416,5 @@ Para que funcione bien de verdad, en la GoPro: **Preferencias > Regional > GPS: 
 
 ## Pendiente
 
-- Generacion de shorts en 9:16 con texto quemado.
 - Titulos, descripciones y hashtags por clip.
 - Subida y programacion automatica a YouTube (Data API v3).

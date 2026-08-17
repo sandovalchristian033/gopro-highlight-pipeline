@@ -9,6 +9,7 @@ from pathlib import Path
 
 from . import config as config_mod
 from . import cleanup, ffmpeg, ingest, matching, render, ride as ride_mod
+from . import shorts as shorts_mod, shorts_guion as shorts_guion_mod
 
 BAR_WIDTH = 26
 
@@ -207,6 +208,77 @@ def cmd_reel(args, cfg) -> int:
     return 0
 
 
+def cmd_shorts(args, cfg) -> int:
+    """Fase 2: armar los shorts verticales listos para subir."""
+    require_ffmpeg()
+    library = config_mod.library_path(cfg)
+    root = ride_mod.resolve(library, args.ride)
+
+    if not (root / "analysis.json").exists():
+        say("No hay analisis todavia; lo corro primero.")
+        analysis_args = argparse.Namespace(**{**vars(args), "seguir": False})
+        cmd_analizar(analysis_args, cfg)
+
+    title(f"Shorts de {root.name}")
+    result = ride_mod.analyse(root, cfg)
+
+    def on_discard(members, total: float) -> None:
+        cuales = ", ".join(f"{c.source.stem}@{c.start:.0f}s" for c in members)
+        say(f"  descarto {total:.0f}s ({cuales}): no llega a shorts_min_seconds "
+            f"({cfg.shorts_min_seconds:.0f}s).")
+
+    shorts = shorts_mod.select_shorts(result, cfg, on_discard=on_discard)
+
+    min_score = result.ajustes.shorts_min_score or cfg.shorts_min_score
+    if result.ajustes.shorts_min_score:
+        say(f"  piso de puntaje: {min_score:.0f} pts (fijado en ajustes.toml de este ride)")
+
+    if not shorts:
+        say(f"  Ningun short quedo en pie: nada paso el piso de puntaje "
+            f"({min_score:.0f} pts) o todo quedo bajo shorts_min_seconds "
+            f"({cfg.shorts_min_seconds:.0f}s).")
+        mejor = max((s.score for s in result.selected if not s.role), default=0.0)
+        say(f"  El mejor momento del ride puntuo {mejor:.0f}.")
+        if mejor < min_score:
+            say("  Si este ride viene de un MP4 ya editado no trae telemetria, y ahi el")
+            say("  techo de puntaje es 65, no 100: fija shorts_min_score en su ajustes.toml.")
+        return 1
+
+    plan_path = shorts_guion_mod.write_plan(result, shorts)
+    warnings = shorts_mod.apply_guion(result, shorts)
+    for warning in warnings:
+        say(f"  aviso: {warning}")
+
+    if cfg.use_nvenc and ffmpeg.has_nvenc():
+        say("  encoder: NVENC (GPU)")
+    else:
+        reason = "desactivado en config.toml" if not cfg.use_nvenc else ffmpeg.nvenc_problem()
+        say(f"  encoder: x264 (CPU, preset {cfg.x264_preset})")
+        say(f"           sin GPU porque: {reason}")
+    started = time.monotonic()
+
+    def on_clip(index, total, name):
+        progress(index, total, name)
+
+    outputs = shorts_mod.render_shorts(
+        result, shorts, cfg, cfg.use_nvenc and ffmpeg.has_nvenc(), on_progress=on_clip
+    )
+
+    say()
+    say(f"  shorts        : {len(outputs)} en {result.shorts_dir}")
+    say(f"  manifiesto    : {result.shorts_dir / shorts_mod.MANIFEST_NAME}")
+    say(f"  plan (timing) : {plan_path}")
+    say(f"  tiempo        : {human_time(time.monotonic() - started)}")
+    say()
+    for short in shorts:
+        clips = ", ".join(f"{c.source.stem}@{c.start:.0f}s" for c in short.clips)
+        fuente = "guion" if short.guion else "texto automatico"
+        say(f"  #{short.order} ({short.duration:.0f}s, {short.score:.0f} pts, {fuente}) {clips}")
+        for t, text in sorted(short.lines, key=lambda i: i[0]):
+            say(f"      [{t:5.1f}s] {text}")
+    return 0
+
+
 def cmd_completo(args, cfg) -> int:
     """Pegar los clips ya renderizados en un solo archivo, sin etiquetas."""
     require_ffmpeg()
@@ -379,7 +451,7 @@ def cmd_limpiar(args, cfg) -> int:
     if not args.incluir_raw:
         say("  Los originales y el analisis siguen intactos.")
     if not args.incluir_final:
-        say("  El video final tampoco se toca.")
+        say("  El video final y los shorts tampoco se tocan.")
     return 0
 
 
@@ -430,7 +502,8 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Flujo tipico despues de un ride:\n"
             "  python run.py ingesta --nombre \"nombre del trail\" --seguir\n"
-            "  python run.py completo          # el video que subes\n"
+            "  python run.py completo          # el video largo que subes\n"
+            "  python run.py shorts            # los shorts 9:16, ya despues de aprobar el largo\n"
             "\n"
             "O paso a paso:\n"
             "  python run.py nuevo --nombre \"cerro-san-cristobal\"\n"
@@ -438,6 +511,7 @@ def build_parser() -> argparse.ArgumentParser:
             "  python run.py analizar\n"
             "  python run.py reel\n"
             "  python run.py completo\n"
+            "  python run.py shorts\n"
         ),
     )
     sub = parser.add_subparsers(dest="comando", required=True)
@@ -461,6 +535,12 @@ def build_parser() -> argparse.ArgumentParser:
     ree = sub.add_parser("reel", help="renderizar los clips limpios y el reel de revision")
     ree.add_argument("ride", nargs="?", help="nombre o ruta del ride")
     ree.set_defaults(func=cmd_reel, seguir=False)
+
+    sho = sub.add_parser(
+        "shorts", help="armar los shorts verticales 9:16, listos para subir"
+    )
+    sho.add_argument("ride", nargs="?", help="nombre o ruta del ride")
+    sho.set_defaults(func=cmd_shorts)
 
     com = sub.add_parser(
         "completo",
@@ -493,7 +573,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--incluir-final",
         dest="incluir_final",
         action="store_true",
-        help="borrar tambien el video final (se regenera con: run.py completo)",
+        help="borrar tambien el video final y los shorts (se regeneran con: "
+             "run.py completo / run.py shorts)",
     )
     lim.add_argument("--si", action="store_true", help="no preguntar antes de borrar")
     lim.set_defaults(func=cmd_limpiar)
