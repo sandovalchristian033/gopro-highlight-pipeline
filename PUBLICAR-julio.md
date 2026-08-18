@@ -1,6 +1,6 @@
 # Publicación — rides de julio (copiar y pegar)
 
-En el orden que pediste. El video largo del 19-jul no está acá porque ya lo subiste vos.
+En el orden que pediste. El video largo del 26-jul no está acá porque ya lo subiste vos.
 
 ## Cómo está armado esto (y por qué)
 
@@ -38,7 +38,7 @@ el mismo día compiten entre ellas y el canal queda mudo la semana siguiente.
 |---|-----------|-----|---------|
 | 1 | Short 19-jul #1 (la persecución) | **martes 18** | 12:30 PM |
 | 2 | Short 19-jul #2 (singletrack apretado) | **jueves 20** | 6:30 PM |
-| 3 | **Video largo 26-jul** | **viernes 21** | 5:00 PM |
+| 3 | **Video largo 19-jul** | **viernes 21** | 5:00 PM |
 | 4 | Short 26-jul #1 (los tablones) | **domingo 23** | 7:00 PM |
 | 5 | Short 26-jul #2 (los boardwalks) | **martes 25** | 12:30 PM |
 | 6 | Short 26-jul #3 (la caída) | **viernes 28** | 6:00 PM |
@@ -127,35 +127,36 @@ mtb pov, singletrack, tight trail, mountain biking, florida mtb, halpatiokee, go
 
 ---
 
-# 3 · Video largo — 26 de julio
+# 3 · Video largo — 19 de julio
 
-**Archivo:** `rides/2026-07-26_halpatiokee-26-julio/raw/halpatiokee-26jul.mp4` (2:47, 16:9 → sube como video normal)
+**Archivo:** `rides/2026-07-19_halpatiokee-19-julio/raw/halpatiokee-19jul.mp4` (2:17, 16:9 → sube como video normal)
 
 **Título**
 ```
-MTB POV: Full Lap at Halpatiokee — and My Buddy Goes Down
+MTB POV: Full Lap at Halpatiokee — Chasing a Faster Rider
 ```
 
 **Descripción**
 ```
-A full lap at Halpatiokee: wooden berms, boardwalks about one tire wide, and my riding buddy getting spat out of a rut near the end. He popped straight back up and kept riding.
+A full lap at Halpatiokee, mostly spent trying to hold the wheel of a rider who's just plain faster than me. Wooden boardwalks through the palmettos, and singletrack that gets barely wider than my handlebars in places.
 
 Chest-mounted GoPro. No music, no commentary — just how the trail actually sounded.
 
 Florida singletrack is flatter than what most people film, but there's a lot more wood out here than anyone expects.
 
-Which section would you have taken faster?
+Would you have closed that gap?
 
 #mtb #mountainbiking #povmtb #singletrack #florida
 ```
 
 **Tags**
 ```
-mtb pov, mountain biking, halpatiokee mtb trail, florida mountain biking, singletrack, boardwalk mtb, gopro pov, mtb crash
+mtb pov, mountain biking, halpatiokee mtb trail, florida mountain biking, singletrack, boardwalk mtb, gopro pov, full lap mtb
 ```
 
-> **Miniatura:** el mejor cuadro está en el segundo ~141, cuando tu compañero se
-> sale del rut. Es el momento con más gancho de todo el video.
+> **Miniatura:** el mejor cuadro está en el segundo ~34.5 (el tablón elevado
+> entre las palmeras) — es la imagen mas llamativa de todo el video. La saqué
+> y la comparé contra un cuadro genérico de singletrack; esa gana lejos.
 
 ---
 
