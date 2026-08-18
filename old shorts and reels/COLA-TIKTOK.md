@@ -64,12 +64,18 @@ What's the one section you always get right?
 
 ---
 
-## #5 · sáb 22 ago — `lnes mod hill 916.mp4` · 1:01 ⚠️
+## #5 · sáb 22 ago — `lnes mod hill 916 recortado.mp4` · 58.5 s ✅
 
-> **Antes de subir este, recortale 2 segundos en CapCut.** Dura 61.4 s y a los
-> 60 s TikTok te quita Dúo, Reaccionar y Pegar. Es el de la loma, el más
-> probable de que alguien quiera responder en video. Si no querés tocarlo,
-> subilo igual — pero pierde eso.
+> **Usá el archivo `recortado`, no el original.** El original dura 61.37 s y a
+> los 60 s TikTok quita Dúo, Reaccionar y Pegar. Cortado a **58.53 s** los
+> conserva.
+>
+> Hecho con copia directa de streams, **sin recodificar**: los 58.5 s que quedan
+> son idénticos al original, bit por bit. Se cortó solo del final (el arranque
+> ya entra en acción y ahí está el gancho); lo que se fue eran 3 segundos de
+> matorral abierto sin nada.
+>
+> El original queda intacto en la carpeta por si alguna vez lo querés completo.
 
 ```
 Dyer Park is built on a closed landfill. That's the only reason South Florida has a hill worth climbing.

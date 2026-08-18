@@ -769,13 +769,21 @@ Cinco de los 16 quedan afuera por esto:
 | `story DH.mp4` | 2:14 | |
 | `story pov head.mp4` | 1:38 | |
 | `lens mod bosque reel.mp4` | 1:26 | |
-| `lnes mod hill 916.mp4` | **1:01** | ← **por 1.4 segundos** |
+| `lnes mod hill 916.mp4` | **1:01** | ← **resuelto**, ver abajo |
 
-**`lnes mod hill 916.mp4` es el caso que vale la pena mirar:** dura 61.4 s y el
-corte está en 60. Recortarle **dos segundos** le devuelve Dúo y Pegar. Es un
-corte trivial en CapCut y el video no pierde nada — y justo ese es el de la
-loma, el que más probablemente alguien quiera comentar en video ("¿en Florida
-hay lomas?"). Lo tenés programado para el sábado 22, así que hay tiempo.
+**`lnes mod hill 916.mp4` era el caso que valía la pena mirar:** duraba 61.37 s
+y el corte está en 60. Se perdía Dúo y Pegar por 1.4 segundos, justo en el video
+de la loma — el que más probablemente alguien quiera responder en video ("¿en
+Florida hay lomas?").
+
+**Resuelto el 18-ago-2026:** `lnes mod hill 916 recortado.mp4`, **58.53 s**.
+
+- Cortado **solo del final**. El arranque ya entra en acción y ahí está el
+  gancho; el final solo seguía rodando por matorral abierto.
+- Hecho con **copia directa de streams (`-c copy`), sin recodificar** — los
+  58.5 s que quedan son idénticos al original bit por bit. Recortarlo en CapCut
+  habría recomprimido los 4K enteros para quitar 3 segundos.
+- El original queda intacto en la carpeta.
 
 Los otros cuatro son largos de verdad; ahí no hay nada que hacer y tampoco vale
 la pena mutilarlos.
