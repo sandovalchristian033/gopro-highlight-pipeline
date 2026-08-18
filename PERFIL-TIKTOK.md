@@ -140,3 +140,90 @@ de lo que te cuesta.
 **La foto de perfil.** Es un avatar ilustrado y es distintivo — se reconoce en
 miniatura, que es lo que importa. Un cuadro de tus rides sería más "auténtico"
 pero a tamaño de miniatura todos los POV de MTB se ven igual. Dejala.
+
+---
+
+# Llevar gente de TikTok a YouTube
+
+Ordenado por lo que de verdad mueve la aguja, no por lo que es más fácil.
+
+## Primero, la expectativa realista
+
+**La conversión de TikTok a YouTube es mala, y conviene saberlo de entrada.**
+Son públicos con intenciones distintas: en TikTok la gente scrollea sin querer
+irse a ningún lado. Aun haciendo todo bien, el que pasa de una plataforma a la
+otra es un porcentaje de un dígito.
+
+Eso **no** significa que no valga la pena. Significa que:
+
+- El valor principal de TikTok ahora mismo es **TikTok**: alcance propio,
+  audiencia propia, y datos de retención que no tenés en ningún otro lado.
+- El goteo hacia YouTube se construye con **repetición**, no con un truco. La
+  misma persona tiene que verte cuatro o cinco veces antes de buscarte.
+- Con 66 seguidores, la prioridad honesta es **crecer en TikTok**. El embudo
+  hacia YouTube importa más cuando haya de dónde sacar gente.
+
+## 1 · El cartel final quemado en el video ← la más fuerte
+
+**Esta es la que más rinde de todas, y es la que todavía no estás usando.**
+
+Un rótulo al final del short: `full ride on YouTube @christianridesmtb`.
+
+Por qué le gana a la bio, al botón y al comentario juntos: **está dentro del
+video, donde está la atención**. La bio la abre una fracción mínima de los que
+te ven. El último segundo del video lo ve todo el que llegó hasta el final — y
+esos son justo los que están enganchados, o sea los únicos con chance real de
+buscarte.
+
+Y en tu caso **no cuesta trabajo nuevo**: la Fase 2 ya quema texto sincronizado
+en los shorts. Es una línea más en el guion, en el segundo final. Se puede
+agregar al pipeline para que salga solo en todos los shorts futuros.
+
+Para los 14 ya programados no aplica — están renderizados. Va de los de julio y
+agosto en adelante.
+
+## 2 · Que el TikTok tenga continuación real en YouTube
+
+Hoy tus TikToks y tus videos de YouTube son **contenido distinto**: el short es
+un momento suelto, completo en sí mismo. Se ve entero y no queda nada
+pendiente, así que no hay ninguna razón para ir a otro lado.
+
+La versión que sí funciona es que el short sea **un pedazo de algo más largo que
+está en YouTube**: el mejor momento de una vuelta cuya vuelta completa está
+allá. Ahí "full ride on YouTube" deja de ser un pedido y pasa a ser una
+respuesta a algo que la persona ya se está preguntando.
+
+Esto encaja con lo que ya hace el pipeline —los shorts salen del mismo ride que
+el video largo— pero hay que **decirlo**, que hoy no se dice en ningún lado.
+
+## 3 · Comentario fijado en cada TikTok
+
+Gratis, lo controlás vos, y aparece arriba de todo. Algo como:
+`Full 20-min ride is on my YouTube — @christianridesmtb`.
+
+No es clickeable a un sitio externo, pero el handle se copia y se busca. Y
+además **te siembra el hilo de comentarios**, que ayuda a que otros comenten.
+
+## 4 · El botón de YouTube y la bio
+
+Los pasos 1 y 2 de este documento. Es la vía más obvia y la más débil de las
+cuatro — la bio la abre poca gente. Hacelo igual, porque es permanente y cuesta
+una vez.
+
+## 5 · Mismo nombre en las dos plataformas ✅ HECHO
+
+Cambiado el 18-ago-2026: `@christianridesmtb` en TikTok y en YouTube.
+
+Parece menor y no lo es: elimina el paso de "¿cómo se llamaba en YouTube?".
+Quien te quiera buscar escribe lo mismo que ya leyó.
+
+## Lo que NO conviene hacer
+
+**No llenes las captions de "SUSCRIBITE EN YOUTUBE".** TikTok favorece lo que
+retiene gente dentro de la plataforma, y una caption que existe solo para
+mandarte afuera rinde peor en la propia TikTok. Una mención al final está bien;
+convertir cada caption en un anuncio te cuesta alcance en los dos lados.
+
+**No pongas la URL completa.** No es clickeable en ningún lado del perfil sin
+1.000 seguidores, así que `youtube.com/` son 12 caracteres desperdiciados. El
+handle solo alcanza.

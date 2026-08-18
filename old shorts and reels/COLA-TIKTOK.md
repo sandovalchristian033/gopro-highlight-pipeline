@@ -9,27 +9,27 @@ calidad ✅ · Contenido generado por IA ❌ · Marca ❌.
 
 Los archivos están todos en `old shorts and reels/`.
 
-## Estado al 18-ago-2026
+## Estado al 18-ago-2026 · verificado en el perfil
 
-**Programados los #1 al #11** (18 al 28 de agosto). Ahí se corta: el #12 da
-error.
+**Programados 14: del 18 al 31 de agosto**, uno por día a las 19:00. Contados
+en la grilla del perfil, no de memoria.
 
-**La ventana de TikTok es de 10 días exactos**, medida el 18-ago: el 28 de
-agosto entró y el 29 fue rechazado. No es "unos 10 días", son 10.
+**Faltan solo dos:**
 
-**Los cinco que faltan (#12 al #16) se pueden programar todos juntos el
-sábado 23 de agosto.** Esa es la primera fecha en la que el #16 (2 de
-septiembre) cae dentro de la ventana. Podrías hacer el #12 antes — desde
-mañana ya entra — pero no gana nada: mejor una sola sesión de cinco el 23 que
-cinco sesiones sueltas.
+| Falta | Archivo | Sale el |
+|-------|---------|---------|
+| #15 | `short 4 dh 2026.mp4` | 1 sep |
+| #16 | `sty citi wheele 2.mp4` | 2 sep |
 
-| Falta | Sale el | Programable desde |
-|-------|---------|-------------------|
-| #12 | 29 ago | 19 ago |
-| #13 | 30 ago | 20 ago |
-| #14 | 31 ago | 21 ago |
-| #15 | 1 sep | 22 ago |
-| #16 | 2 sep | **23 ago** ← hacé los cinco acá |
+**Probá de nuevo el 20 de agosto.** Si todavía da error, esperá un día más y
+volvé a probar: cada día que pasa corre la ventana un día.
+
+> **Corrección:** llegué a escribir acá que la ventana era "de 10 días exactos"
+> y que la primera tanda se cortaba en el #11. Las dos cosas eran falsas —
+> quedaron programados hasta el 31 de agosto, que son 13 días. Deduje la regla
+> de un solo error puntual en vez de mirar lo que había quedado realmente
+> programado. **No hay un número confiable acá:** probá, y si rebota, esperá un
+> día.
 
 ---
 
