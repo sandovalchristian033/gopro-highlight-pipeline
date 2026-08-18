@@ -7,21 +7,21 @@ Canal de YouTube: **@christianridesmtb** (`youtube.com/@christianridesmtb`).
 
 ---
 
-## Paso 1 · Revisá el teléfono ANTES de tocar la bio
+## Paso 1 · El botón de YouTube NO existe en su cuenta ❌
 
-En la app de TikTok → Perfil → **Editar perfil**, fijate si aparece una opción
-para **añadir YouTube** (junto a Instagram).
+**Verificado en la app el 18-ago-2026.** En Editar perfil solo aparecen: name,
+username, AI self, view, pronoun, college, fundraiser, y abajo change, display
+order, TikTok Studio. **No hay sección de redes sociales ni opción de añadir
+YouTube o Instagram.**
 
-- **Si aparece:** usala y listo. Queda un botón de YouTube en tu perfil, **no
-  gasta ni un carácter de la bio**, y nadie tiene que teclear tu handle a mano.
-  En ese caso **no toques la bio** (ver el paso 2 para entender por qué).
-- **Si no aparece:** entonces sí, la bio es la única vía, y vas al paso 2.
+El editor **web** tampoco: solo foto, usuario, nombre y descripción.
 
-El editor **web** no sirve para esto: solo tiene foto, usuario, nombre y
-descripción. Ningún campo de enlace.
+Y el campo de "sitio web" clickeable **pide 1.000 seguidores**; con 66 no está
+disponible y no hay forma de saltearlo.
 
-El campo de "sitio web" clickeable de la bio **pide 1.000 seguidores**. Con 66
-no está disponible, y no hay forma de saltearlo.
+**Conclusión: no hay ningún enlace clickeable posible hoy.** La bio como texto
+plano es la única vía dentro del perfil — y por eso el cartel quemado al final
+del video (más abajo) pasa a ser la palanca principal, no la secundaria.
 
 ---
 
