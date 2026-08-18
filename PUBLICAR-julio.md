@@ -29,6 +29,50 @@ cosa de acá abajo.
 
 ---
 
+## Calendario recomendado (hora de Florida, ET)
+
+Hoy es lunes 17-ago-2026. Uno cada dos días, no los seis de golpe: seis subidas
+el mismo día compiten entre ellas y el canal queda mudo la semana siguiente.
+
+| # | Contenido | Día | Hora ET |
+|---|-----------|-----|---------|
+| 1 | Short 19-jul #1 (la persecución) | **martes 18** | 12:30 PM |
+| 2 | Short 19-jul #2 (singletrack apretado) | **jueves 20** | 6:30 PM |
+| 3 | **Video largo 26-jul** | **viernes 21** | 5:00 PM |
+| 4 | Short 26-jul #1 (los tablones) | **domingo 23** | 7:00 PM |
+| 5 | Short 26-jul #2 (los boardwalks) | **martes 25** | 12:30 PM |
+| 6 | Short 26-jul #3 (la caída) | **viernes 28** | 6:00 PM |
+
+**Por qué esas franjas.** Los estudios de 2026 coinciden en dos ventanas para
+Shorts — mediodía (12-3 PM) y tarde-noche (6-9 PM) — y varios señalan el viernes
+por la tarde como la mejor de la semana. Pero **no coinciden entre ellos** en el
+día exacto (uno dice viernes 4-7 PM, otro miércoles 4 PM), y esa discrepancia ya
+te dice que el efecto es real pero chico y ruidoso.
+
+**Para Shorts importa menos de lo que parece.** El algoritmo de Shorts evalúa
+durante horas y días, no en la primera hora, así que un horario "perdido" no te
+mata el video. En cambio para el **video largo** la primera hora sí pesa mucho:
+por eso ese va al viernes 5 PM, el mejor turno del lote.
+
+**Lo que sí importa más que la hora: la constancia.** Un horario decente y
+regular le gana a un horario perfecto y errático — el algoritmo aprende cuándo
+publicás.
+
+**Razonamiento propio del nicho** (esto es inferencia mía, no sale de ningún
+estudio): tu público son riders. Sábado y domingo por la mañana están *en el
+trail*, no en el teléfono. Los picos reales deberían ser el **jueves y viernes
+por la tarde** (planeando la salida del fin de semana) y el **domingo por la
+noche** (ya de vuelta, cansados, scrolleando). Por eso el short de los tablones
+va domingo 7 PM. Vale la pena comprobarlo con tus propios números.
+
+> **Después de estas seis subidas, tirá esta tabla a la basura.** En YouTube
+> Studio → Audiencia → "Cuándo están tus espectadores en YouTube" vas a tener tu
+> curva real, que vale más que cualquier promedio de internet. Con eso, y con la
+> retención de cada short, la semana que viene calibramos de verdad la ventana
+> de 15-40 s en vez de seguir a ojo.
+
+---
+
 # 1 · Short — 19 de julio
 
 **Archivo:** `rides/2026-07-19_halpatiokee-19-julio/shorts/01_060pts_ACCION_05671a_short.mp4` (33 s)
