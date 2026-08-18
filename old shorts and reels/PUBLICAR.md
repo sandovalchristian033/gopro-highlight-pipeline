@@ -747,10 +747,14 @@ Por qué 7 PM ET en concreto:
 no en la primera hora — a diferencia de YouTube en formato largo, donde la
 primera hora sí pesa. La constancia le gana al horario perfecto.
 
-## Límite de TikTok: solo 10 días de anticipación
+## Límite de TikTok: 10 días exactos
 
-El programador de TikTok Studio **no deja programar más allá de 10 días**. Con
-16 videos a uno por día, no entran en una sola sesión: van en dos tandas.
+El programador de TikTok Studio **no deja programar más allá de 10 días**, y
+son 10 exactos, no aproximados. **Medido el 18-ago-2026:** el 28 de agosto se
+programó sin problema y el 29 dio error.
+
+Con 16 videos a uno por día no entran en una sola sesión: la primera tanda
+llega hasta el #11 y los cinco restantes se programan el 23 de agosto.
 
 ## Pasar de 60 segundos te cuesta Dúo, Reaccionar y Pegar
 
@@ -792,31 +796,35 @@ la pena mutilarlos.
 actual es 40 s, así que todos entran cómodos — pero si alguna vez se plantea
 subirlo, **60 s es una frontera real, no un número redondo cualquiera**.
 
-## Tanda 1 — del 18 al 27 de agosto
+## Tanda 1 — del 18 al 28 de agosto · TODA PROGRAMADA ✅
 
 Chris decidió arrancar **hoy mismo** (18-ago) en vez de esperar al día
-siguiente. El primero quedó programado a las 19:00 del 18-ago-2026.
-
-| # | Día | Archivo | Ficha | Estado |
-|---|-----|---------|-------|--------|
-| 1 | **mar 18** | `lens mod bosque reel.mp4` | B2 | programado 19:00 |
-| 2 | mié 19 | `story wheele dh.mp4` | A8 | |
-| 3 | jue 20 | `story pov head.mp4` | A10 | |
-| 4 | vie 21 | `short 7 dh 2026.mp4` | A5 | |
-| 5 | sáb 22 | `lnes mod hill 916.mp4` | A12 | |
-| 6 | dom 23 | `short 3.mp4` | B1 | |
-| 7 | lun 24 | `story DH.mp4` | A9 | |
-| 8 | mar 25 | `short 5 dh 2026.mp4` | A3 | |
-| 9 | mié 26 | `sty ciwheele 1.mp4` | C1 | |
-| 10 | jue 27 | `short 6 dh 2026.mp4` | A4 | |
-
-## Tanda 2 — del 28 de agosto al 2 de septiembre
-
-Programable a partir del **25 de agosto** (por la ventana de 10 días).
+siguiente, y en una sola sesión programó los once que la ventana permitía.
 
 | # | Día | Archivo | Ficha |
 |---|-----|---------|-------|
+| 1 | mar 18 | `lens mod bosque reel.mp4` | B2 |
+| 2 | mié 19 | `story wheele dh.mp4` | A8 |
+| 3 | jue 20 | `story pov head.mp4` | A10 |
+| 4 | vie 21 | `short 7 dh 2026.mp4` | A5 |
+| 5 | sáb 22 | `lnes mod hill 916 recortado.mp4` | A12 |
+| 6 | dom 23 | `short 3.mp4` | B1 |
+| 7 | lun 24 | `story DH.mp4` | A9 |
+| 8 | mar 25 | `short 5 dh 2026.mp4` | A3 |
+| 9 | mié 26 | `sty ciwheele 1.mp4` | C1 |
+| 10 | jue 27 | `short 6 dh 2026.mp4` | A4 |
 | 11 | vie 28 | `short 1.mp4` | A7 |
+
+El #11 fue el último que entró: el #12 (29 de agosto) da error por la ventana
+de 10 días.
+
+## Tanda 2 — del 29 de agosto al 2 de septiembre
+
+**Programar el sábado 23 de agosto**, que es cuando el #16 entra en la ventana.
+Los cinco de una sentada.
+
+| # | Día | Archivo | Ficha |
+|---|-----|---------|-------|
 | 12 | sáb 29 | `short 8 dh 2026.mp4` | A6 |
 | 13 | dom 30 | `shorts internal cage 0426.mp4` | A11 |
 | 14 | lun 31 | `short 3 dh 2026.mp4` | A1 |

@@ -9,8 +9,27 @@ calidad ✅ · Contenido generado por IA ❌ · Marca ❌.
 
 Los archivos están todos en `old shorts and reels/`.
 
-**Recordatorio de la ventana de 10 días:** del #11 en adelante no se pueden
-programar hasta el **25 de agosto**.
+## Estado al 18-ago-2026
+
+**Programados los #1 al #11** (18 al 28 de agosto). Ahí se corta: el #12 da
+error.
+
+**La ventana de TikTok es de 10 días exactos**, medida el 18-ago: el 28 de
+agosto entró y el 29 fue rechazado. No es "unos 10 días", son 10.
+
+**Los cinco que faltan (#12 al #16) se pueden programar todos juntos el
+sábado 23 de agosto.** Esa es la primera fecha en la que el #16 (2 de
+septiembre) cae dentro de la ventana. Podrías hacer el #12 antes — desde
+mañana ya entra — pero no gana nada: mejor una sola sesión de cinco el 23 que
+cinco sesiones sueltas.
+
+| Falta | Sale el | Programable desde |
+|-------|---------|-------------------|
+| #12 | 29 ago | 19 ago |
+| #13 | 30 ago | 20 ago |
+| #14 | 31 ago | 21 ago |
+| #15 | 1 sep | 22 ago |
+| #16 | 2 sep | **23 ago** ← hacé los cinco acá |
 
 ---
 
@@ -160,7 +179,10 @@ Light hands or aggressive? How do you ride sand?
 
 ---
 
-# ⏸ A partir de acá, programar recién el 25 de agosto
+# ⏸ Los cinco de abajo: programarlos el sábado 23 de agosto
+
+Estos son los que dan error hoy. El 23 de agosto los cinco caen dentro de la
+ventana de 10 días y se hacen de una sentada.
 
 ---
 
