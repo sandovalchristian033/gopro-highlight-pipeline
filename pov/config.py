@@ -233,6 +233,21 @@ class Config:
     # Solo para el respaldo automatico (sin guion escrito a mano): a cuantos
     # segundos del final arranca la pregunta de cierre.
     shorts_closing_seconds: float = 2.5
+    # Cartel fijo al pie del short, para mandar a YouTube. Va ABAJO, con estilo
+    # propio, mientras las lineas del guion siguen arriba: los dos conviven sin
+    # pisarse, asi que la pregunta de cierre (que es la que trae comentarios)
+    # no pierde nada.
+    #
+    # Existe porque en TikTok no hay ningun enlace clickeable disponible:
+    # el editor web no tiene campo de enlace, la app de Chris no ofrece los
+    # botones de redes sociales, y el sitio web de la bio pide 1.000
+    # seguidores contra los 66 que tiene (18-ago-2026). El unico lugar donde
+    # el mensaje llega con la atencion puesta es dentro del video.
+    #
+    # Vacio = sin cartel, que es el comportamiento historico.
+    shorts_outro_text: str = ""
+    # Cuantos segundos antes del final aparece, y hasta el final se queda.
+    shorts_outro_seconds: float = 4.0
     # Lienzo vertical de salida.
     shorts_width: int = 1080
     shorts_height: int = 1920

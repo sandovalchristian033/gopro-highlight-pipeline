@@ -41,6 +41,12 @@ def check(name: str, condition: bool, detail: str = "") -> None:
         print(f"  FALLA {name}  {detail}")
 
 
+def _ass_seconds(stamp: str) -> float:
+    """Inversa de `render._ass_time`, para comprobar tiempos del .ass."""
+    hours, minutes, secs = stamp.strip().split(":")
+    return int(hours) * 3600 + int(minutes) * 60 + float(secs)
+
+
 # --------------------------------------------------------------------------
 # 1. parser GPMF
 # --------------------------------------------------------------------------
@@ -1184,6 +1190,82 @@ def test_shorts() -> None:
         "el .ass pide ajuste automatico de linea (WrapStyle 0)",
         "WrapStyle: 0" in ass,
         [l for l in ass.splitlines() if "WrapStyle" in l],
+    )
+
+    # --- cartel de cierre hacia YouTube -------------------------------------
+    # Existe porque en TikTok Chris no tiene ningun enlace clickeable
+    # disponible (ni bio, ni botones sociales, ni sitio web sin 1.000
+    # seguidores): el unico lugar donde el mensaje llega es dentro del video.
+    # La linea base tiene que pedir explicitamente "sin cartel": config.toml
+    # ya lo trae puesto para todos los rides, asi que `cfg` no sirve de
+    # control.
+    mismos = [
+        seg("GX01.MP4", 0.0, 5.0, 70.0),
+        seg("GX01.MP4", 10.0, 5.0, 55.0),
+        seg("GX01.MP4", 20.0, 5.0, 62.0),
+    ]
+    cfg_sin_outro = cfg_dur.merged({"shorts_outro_text": ""})
+    corto_sin = shorts_mod.select_shorts(fake_ride(mismos), cfg_sin_outro)[0]
+    sin_outro = shorts_mod.build_short_labels(corto_sin, cfg_sin_outro)
+    check(
+        "sin shorts_outro_text no se quema ningun cartel",
+        ",Outro,," not in sin_outro,
+        [l for l in sin_outro.splitlines() if "Dialogue" in l],
+    )
+
+    cfg_outro = cfg_dur.merged(
+        {"shorts_outro_text": "full ride on YouTube @x", "shorts_outro_seconds": 4.0}
+    )
+    corto_outro = shorts_mod.select_shorts(fake_ride(mismos), cfg_outro)[0]
+    check(
+        "el cartel sale de la config y queda en el short",
+        corto_outro.outro == "full ride on YouTube @x",
+        corto_outro.outro,
+    )
+
+    ass_outro = shorts_mod.build_short_labels(corto_outro, cfg_outro)
+    dialogos = [l for l in ass_outro.splitlines() if l.startswith("Dialogue")]
+    outro_lines = [l for l in dialogos if ",Outro,," in l]
+    guion_lines = [l for l in dialogos if ",Line,," in l]
+    check("el cartel aparece una sola vez", len(outro_lines) == 1, outro_lines)
+    check(
+        "el .ass declara un estilo Outro al pie (Alignment 2) y Line arriba (8)",
+        "Style: Outro," in ass_outro
+        and ass_outro.split("Style: Outro,")[1].split("\n")[0].split(",")[-5] == "2",
+        [l for l in ass_outro.splitlines() if l.startswith("Style:")],
+    )
+
+    # Lo que importa de verdad: el cartel NO le roba tiempo a la pregunta de
+    # cierre. Van en posiciones distintas (arriba vs abajo), asi que pueden
+    # solaparse en el tiempo -- y de hecho tienen que hacerlo, porque los dos
+    # viven en los ultimos segundos. Si alguien alineara los dos estilos al
+    # mismo lado, esto seguiria pasando pero se taparian en pantalla; por eso
+    # la comprobacion de Alignment de arriba es parte del mismo contrato.
+    check(
+        "el guion conserva todas sus lineas con el cartel puesto",
+        len(guion_lines) == len([l for l in sin_outro.splitlines() if l.startswith("Dialogue")]),
+        f"{len(guion_lines)} con cartel vs {len([l for l in sin_outro.splitlines() if l.startswith('Dialogue')])} sin cartel",
+    )
+    check(
+        "el cartel cubre los ultimos segundos y termina con el short",
+        _ass_seconds(outro_lines[0].split(",")[2]) >= corto_outro.duration - 0.01,
+        outro_lines[0],
+    )
+    check(
+        "el cartel arranca shorts_outro_seconds antes del final",
+        abs(_ass_seconds(outro_lines[0].split(",")[1]) - (corto_outro.duration - 4.0)) < 0.05,
+        f"arranca en {_ass_seconds(outro_lines[0].split(',')[1]):.2f}, dura {corto_outro.duration:.2f}",
+    )
+
+    # Cambiar el cartel tiene que producir un archivo nuevo: si el nombre no
+    # cambiara, `clip_is_current` (que solo mira duracion) daria por bueno el
+    # render viejo y el cartel nuevo no llegaria nunca al video.
+    check(
+        "cambiar el cartel invalida el render anterior",
+        shorts_mod.short_filename(corto_outro.order, corto_outro)
+        != shorts_mod.short_filename(corto_sin.order, corto_sin),
+        f"{shorts_mod.short_filename(corto_outro.order, corto_outro)} vs "
+        f"{shorts_mod.short_filename(corto_sin.order, corto_sin)}",
     )
 
     # --- respaldo del nombre del trail sin ajustes.toml ---------------------

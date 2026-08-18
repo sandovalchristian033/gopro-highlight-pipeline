@@ -41,6 +41,7 @@ class Short:
     order: int = 0
     alt_hook: str = ""
     guion: bool = False  # True si `lines` viene del guion escrito a mano
+    outro: str = ""  # cartel fijo al pie, aparte del guion (`shorts_outro_text`)
 
     @property
     def duration(self) -> float:
@@ -211,10 +212,15 @@ def select_shorts(ride: Ride, cfg, on_discard=None) -> list[Short]:
     # El `order` se numera despues de descartar, no antes: es la clave con la
     # que `shorts_guion.toml` referencia cada short, asi que tiene que quedar
     # 1..N sin huecos.
+    # El cartel de cierre es el mismo para todos los shorts del ride y no
+    # depende del guion, asi que se asigna aca y `apply_guion` no lo toca:
+    # reescribir el guion no deberia poder perderlo por accidente.
+    outro = (ride.ajustes.shorts_outro_text or cfg.shorts_outro_text or "").strip()
+
     shorts: list[Short] = []
     for order, members in enumerate(viable, start=1):
         ordered = sorted(members, key=lambda s: s.score, reverse=True)
-        short = Short(clips=ordered, order=order)
+        short = Short(clips=ordered, order=order, outro=outro)
         short.lines = _fallback_lines(short, trail, cfg)
         shorts.append(short)
     return shorts
@@ -262,6 +268,10 @@ def _text_fingerprint(short: Short) -> str:
     sin tener que duplicarla: un texto nuevo simplemente produce un nombre
     nuevo, y el archivo con el texto viejo queda huerfano y se borra solo."""
     joined = "|".join(f"{t:.2f}:{text}" for t, text in short.lines)
+    # El cartel de cierre tambien es texto quemado: cambiarlo (o quitarlo)
+    # tiene que invalidar el render igual que reescribir una linea del guion,
+    # o quedaria un short viejo con el cartel viejo y ningun error visible.
+    joined += f"||outro:{short.outro}"
     return hashlib.sha256(joined.encode("utf-8")).hexdigest()[:6]
 
 
@@ -298,6 +308,7 @@ ScaledBorderAndShadow: yes
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Line,Arial,{max(44, width // 16)},&H00FFFFFF,&H000000FF,&H00000000,&HC8000000,1,0,0,0,100,100,0,0,3,2,0,8,60,60,160,1
+Style: Outro,Arial,{max(34, width // 22)},&H00FFFFFF,&H000000FF,&H00000000,&HC8000000,1,0,0,0,100,100,0,0,3,2,0,2,60,60,150,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -311,6 +322,17 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         end = max(end, min(duration, start + 0.4))  # nunca un evento de largo cero
         lines.append(
             f"Dialogue: 0,{_ass_time(start)},{_ass_time(end)},Line,,0,0,0,,{_ass_escape(text)}"
+        )
+
+    # El cartel va al pie (`Alignment 2`) mientras el guion sigue arriba
+    # (`Alignment 8`): por eso puede solaparse en el tiempo con la pregunta de
+    # cierre sin taparla. Si compartieran posicion habria que recortar una de
+    # las dos, y la que se perderia seria justo la que trae comentarios.
+    if short.outro:
+        start = max(0.0, duration - max(0.0, cfg.shorts_outro_seconds))
+        lines.append(
+            f"Dialogue: 0,{_ass_time(start)},{_ass_time(duration)},Outro,,0,0,0,,"
+            f"{_ass_escape(short.outro)}"
         )
     return header + "\n".join(lines) + "\n"
 

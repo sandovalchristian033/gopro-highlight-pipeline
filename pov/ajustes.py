@@ -74,6 +74,9 @@ class Ajustes:
     shorts_min_score: float = 0.0
     # 0 = usar el global de config.toml. Ver el docstring del modulo.
     shorts_min_seconds: float = 0.0
+    # "" = usar el global de config.toml. Sirve para cambiar el cartel de
+    # cierre en un ride suelto sin tocar el de todos los demas.
+    shorts_outro_text: str = ""
 
     @property
     def activos(self) -> bool:
@@ -86,6 +89,7 @@ class Ajustes:
             or self.nombre_trail
             or self.shorts_min_score
             or self.shorts_min_seconds
+            or self.shorts_outro_text
         )
 
     def excluido(self, path: Path) -> bool:
@@ -119,6 +123,8 @@ class Ajustes:
             lines.append(f"piso de puntaje de shorts fijado en {self.shorts_min_score:.0f} pts")
         if self.shorts_min_seconds:
             lines.append(f"piso de duracion de shorts fijado en {self.shorts_min_seconds:.0f}s")
+        if self.shorts_outro_text:
+            lines.append(f"cartel de cierre propio: {self.shorts_outro_text}")
         return lines
 
 
@@ -146,6 +152,7 @@ def load(ride_root: Path) -> Ajustes:
         nombre_trail=str(data.get("nombre_trail", "")),
         shorts_min_score=float(data.get("shorts_min_score", 0.0)),
         shorts_min_seconds=float(data.get("shorts_min_seconds", 0.0)),
+        shorts_outro_text=str(data.get("shorts_outro_text", "")),
     )
 
 

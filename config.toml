@@ -285,6 +285,29 @@ shorts_line_seconds = 2.2
 # cierre.
 shorts_closing_seconds = 2.5
 
+# Cartel fijo al pie del short. Va ABAJO y la pregunta de cierre sigue ARRIBA,
+# asi que conviven sin pisarse -- la pregunta es la que trae comentarios y no
+# se sacrifica.
+#
+# Por que existe: en TikTok no hay ningun enlace clickeable disponible para
+# Chris. El editor web no tiene campo de enlace, su version de la app no
+# ofrece los botones de redes sociales, y el enlace de sitio web de la bio
+# pide 1.000 seguidores contra los 66 que tiene (medido el 18-ago-2026). El
+# unico lugar donde el mensaje llega con la atencion puesta es dentro del
+# video, en el ultimo segundo, que es justo cuando lo ve el que se quedo hasta
+# el final.
+#
+# Dice el handle a secas y no "youtube.com/...": no es clickeable en ningun
+# caso, asi que la URL solo ocuparia lugar. Y el handle es el mismo en TikTok
+# y en YouTube desde el 18-ago-2026, lo que hace que sea facil de recordar.
+#
+# Vacio = sin cartel. Se puede pisar por ride desde su ajustes.toml.
+shorts_outro_text = "full ride on YouTube @christianridesmtb"
+
+# Cuantos segundos antes del final aparece el cartel, y ahi se queda hasta el
+# final. 4 s da tiempo a leerlo sin comerse medio short.
+shorts_outro_seconds = 4.0
+
 # Lienzo vertical de salida.
 shorts_width = 1080
 shorts_height = 1920

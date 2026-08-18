@@ -24,6 +24,25 @@ No es copiar y pegar lo de YouTube. Lo que cambia:
   iba en inglés/hashtags y el nicho POV es global. (El de cripto era en
   español — son públicos distintos, está bien que no coincidan.)
 
+## ⚠ Los nombres de archivo de acá abajo van a cambiar
+
+El 18-ago-2026 se agregó al pipeline un **cartel de cierre** que manda a
+YouTube (`shorts_outro_text` en `config.toml`). Se quema al pie del short, en
+los últimos 4 segundos.
+
+Eso cambia el nombre de cada archivo: el nombre lleva una huella del texto
+quemado, justamente para que un cambio de texto no reutilice en silencio un
+render viejo. **Cuando vuelvas a correr el pipeline sobre estos rides, los
+nombres de abajo dejan de existir** y salen otros con la huella nueva.
+
+Las captions no cambian — el texto sigue sirviendo igual. Lo que hay que
+rehacer es la correspondencia entre caption y archivo, mirando el `shorts.csv`
+de cada ride.
+
+**Nada de esto afecta a lo que ya está programado en TikTok:** esos 14 son los
+de `old shorts and reels/`, editados a mano en CapCut, que el pipeline ni
+conoce ni toca.
+
 ## Sobre el audio
 
 Tus shorts van sin música a propósito (decisión tuya de Fase 2). En TikTok eso
