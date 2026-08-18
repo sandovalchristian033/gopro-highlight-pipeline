@@ -752,31 +752,68 @@ primera hora sí pesa. La constancia le gana al horario perfecto.
 El programador de TikTok Studio **no deja programar más allá de 10 días**. Con
 16 videos a uno por día, no entran en una sola sesión: van en dos tandas.
 
-## Tanda 1 — programar hoy (19 al 28 de agosto)
+## Pasar de 60 segundos te cuesta Dúo, Reaccionar y Pegar
+
+Descubierto el 18-ago-2026 al programar el primero: TikTok avisa que **"las
+funciones Dúo, Reaccionar y Pegar no están disponibles para vídeos que duran más
+de 60 s"**, y deja la casilla de "Reutilización de contenido" en gris.
+
+Eso importa porque Dúo y Pegar son **canales de descubrimiento**: alguien que
+reacciona a tu video te lleva su público. Al pasar de 60 s los perdés.
+
+Cinco de los 16 quedan afuera por esto:
+
+| Archivo | Duración | |
+|---------|----------|---|
+| `shorts internal cage 0426.mp4` | 2:53 | |
+| `story DH.mp4` | 2:14 | |
+| `story pov head.mp4` | 1:38 | |
+| `lens mod bosque reel.mp4` | 1:26 | |
+| `lnes mod hill 916.mp4` | **1:01** | ← **por 1.4 segundos** |
+
+**`lnes mod hill 916.mp4` es el caso que vale la pena mirar:** dura 61.4 s y el
+corte está en 60. Recortarle **dos segundos** le devuelve Dúo y Pegar. Es un
+corte trivial en CapCut y el video no pierde nada — y justo ese es el de la
+loma, el que más probablemente alguien quiera comentar en video ("¿en Florida
+hay lomas?"). Lo tenés programado para el sábado 22, así que hay tiempo.
+
+Los otros cuatro son largos de verdad; ahí no hay nada que hacer y tampoco vale
+la pena mutilarlos.
+
+**Para el futuro:** esto también aplica a los shorts del pipeline. Tu techo
+actual es 40 s, así que todos entran cómodos — pero si alguna vez se plantea
+subirlo, **60 s es una frontera real, no un número redondo cualquiera**.
+
+## Tanda 1 — del 18 al 27 de agosto
+
+Chris decidió arrancar **hoy mismo** (18-ago) en vez de esperar al día
+siguiente. El primero quedó programado a las 19:00 del 18-ago-2026.
+
+| # | Día | Archivo | Ficha | Estado |
+|---|-----|---------|-------|--------|
+| 1 | **mar 18** | `lens mod bosque reel.mp4` | B2 | programado 19:00 |
+| 2 | mié 19 | `story wheele dh.mp4` | A8 | |
+| 3 | jue 20 | `story pov head.mp4` | A10 | |
+| 4 | vie 21 | `short 7 dh 2026.mp4` | A5 | |
+| 5 | sáb 22 | `lnes mod hill 916.mp4` | A12 | |
+| 6 | dom 23 | `short 3.mp4` | B1 | |
+| 7 | lun 24 | `story DH.mp4` | A9 | |
+| 8 | mar 25 | `short 5 dh 2026.mp4` | A3 | |
+| 9 | mié 26 | `sty ciwheele 1.mp4` | C1 | |
+| 10 | jue 27 | `short 6 dh 2026.mp4` | A4 | |
+
+## Tanda 2 — del 28 de agosto al 2 de septiembre
+
+Programable a partir del **25 de agosto** (por la ventana de 10 días).
 
 | # | Día | Archivo | Ficha |
 |---|-----|---------|-------|
-| 1 | mié 19 | `lens mod bosque reel.mp4` | B2 |
-| 2 | jue 20 | `story wheele dh.mp4` | A8 |
-| 3 | vie 21 | `story pov head.mp4` | A10 |
-| 4 | sáb 22 | `short 7 dh 2026.mp4` | A5 |
-| 5 | dom 23 | `lnes mod hill 916.mp4` | A12 |
-| 6 | lun 24 | `short 3.mp4` | B1 |
-| 7 | mar 25 | `story DH.mp4` | A9 |
-| 8 | mié 26 | `short 5 dh 2026.mp4` | A3 |
-| 9 | jue 27 | `sty ciwheele 1.mp4` | C1 |
-| 10 | vie 28 | `short 6 dh 2026.mp4` | A4 |
-
-## Tanda 2 — programar el 26 de agosto o después (29 de agosto al 3 de septiembre)
-
-| # | Día | Archivo | Ficha |
-|---|-----|---------|-------|
-| 11 | sáb 29 | `short 1.mp4` | A7 |
-| 12 | dom 30 | `short 8 dh 2026.mp4` | A6 |
-| 13 | lun 31 | `shorts internal cage 0426.mp4` | A11 |
-| 14 | mar 1 sep | `short 3 dh 2026.mp4` | A1 |
-| 15 | mié 2 sep | `short 4 dh 2026.mp4` | A2 |
-| 16 | jue 3 sep | `sty citi wheele 2.mp4` | C2 |
+| 11 | vie 28 | `short 1.mp4` | A7 |
+| 12 | sáb 29 | `short 8 dh 2026.mp4` | A6 |
+| 13 | dom 30 | `shorts internal cage 0426.mp4` | A11 |
+| 14 | lun 31 | `short 3 dh 2026.mp4` | A1 |
+| 15 | mar 1 sep | `short 4 dh 2026.mp4` | A2 |
+| 16 | mié 2 sep | `sty citi wheele 2.mp4` | C2 |
 
 ## Por qué ese orden
 
