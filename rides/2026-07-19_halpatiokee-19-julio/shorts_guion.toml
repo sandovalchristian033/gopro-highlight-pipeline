@@ -1,0 +1,32 @@
+# Guion escrito a mano el 17-ago-2026 mirando el material cuadro por cuadro.
+#
+# Este ride NO trae telemetria, asi que `shorts_plan.json` viene con
+# `events: []` y velocidad 0: el plan solo dice donde cortan los clips, no que
+# pasa dentro. Los segundos de abajo salen de revisar el video de verdad, no
+# de eventos detectados.
+#
+# Lo que se ve: vas detras de otro rider (jersey naranja) casi todo el short 1.
+# Eso es la historia -- la persecucion, no un golpe. El short 2 es singletrack
+# apretado entre palmettos, del ancho del manillar.
+
+[[shorts]]
+order = 1
+climax = "halpatiokee-19jul@58.5"
+alt_hook = "he dropped me in the first corner"
+lineas = [
+  { t = 0.0,  texto = "trying to hold his wheel" },
+  { t = 4.6,  texto = "he's already gone" },
+  { t = 13.8, texto = "here comes the wood" },
+  { t = 23.8, texto = "okay, back on him" },
+  { t = 31.6, texto = "how long would you last back here?" },
+]
+
+[[shorts]]
+order = 2
+climax = "halpatiokee-19jul@70.6"
+alt_hook = "no room to get this wrong"
+lineas = [
+  { t = 0.0,  texto = "barely wider than my bars" },
+  { t = 9.8,  texto = "that tree is not moving" },
+  { t = 15.8, texto = "would you take this faster?" },
+]

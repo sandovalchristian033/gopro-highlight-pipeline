@@ -214,6 +214,33 @@ el global). Empeza en ~30 para un ride importado y ajusta mirando el
 resultado. `run.py shorts` avisa con el mejor puntaje del ride cuando no
 sale nada, justo para diagnosticar esto.
 
+**Y ojo con el presupuesto, que es el cuello de botella de verdad.** Medido el
+17-ago-2026 sobre los dos rides de julio: con `shorts_min_score = 30` seguian
+saliendo *un solo* short por ride. El culpable no era el piso de puntaje sino
+`reel_budget` -- 15% del material, con piso de 30 s -- que esta pensado para un
+ride crudo de 45 min lleno de pedaleo. En un MP4 ya editado **el recorte duro
+ya lo hizo Chris**, asi que quedarse con 30 s de 2:17 tira a la basura la mitad
+de lo bueno. Poné `reel_segundos` = el largo completo del archivo en el
+`ajustes.toml` del ride y deja que mande el umbral. Con eso los dos rides
+pasaron de 1 a 2 shorts cada uno.
+
+**Y el plan no te va a servir para el guion.** Sin GPMF, `shorts_plan.json`
+sale con `events: []` y `peak_speed_kmh: 0` en todos los clips: te dice donde
+cortan, no que pasa dentro. Escribir el guion desde ahi seria inventar. Lo que
+funciono: renderizar una vez con el texto de respaldo y sacar una hoja de
+contactos del short ya armado, que ademas te da los segundos en el mismo eje
+que usa el guion:
+
+```bash
+ffmpeg -v error -y -i <short>.mp4 \
+  -vf "fps=1/2,scale=270:480,tile=4x5:padding=6:color=white" \
+  -frames:v 1 /tmp/hoja.png
+```
+
+Cada casilla es un frame cada 2 s, leyendo por filas desde t=0. (Nada de
+`drawtext` para rotular: fontconfig no esta configurado en este equipo y
+ffmpeg se cae con segfault.)
+
 ## Calibracion pendiente
 
 `shorts_min_score = 55.0` esta **sin calibrar contra su ojo**: es el valor

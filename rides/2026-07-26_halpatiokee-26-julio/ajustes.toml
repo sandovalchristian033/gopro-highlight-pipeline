@@ -1,0 +1,15 @@
+# Ride del domingo 26-jul-2026 en Halpatiokee. Importado el 17-ago-2026.
+#
+# Mismo caso que el del 19-jul: un MP4 de 2:47 ya editado a mano antes del
+# pipeline, que solo pasa por Fase 2 (shorts). Sin GPMF, puntaje solo por audio.
+
+nombre_trail = "Halpatiokee MTB Trail"
+
+# Ver la nota de shorts_min_score en el ride del 19-jul: sin telemetria el techo
+# es 65, no 100, y el global de 55 no sirve para este material.
+shorts_min_score = 30
+
+# Igual que el ride del 19-jul: el material ya viene editado, asi que el 15%
+# automatico (30 s de 2:47) sobra recortar. Se pide el largo completo y deja que
+# mande el umbral del ride.
+reel_segundos = 170

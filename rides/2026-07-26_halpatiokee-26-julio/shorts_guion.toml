@@ -1,0 +1,31 @@
+# Guion escrito a mano el 17-ago-2026 mirando el material cuadro por cuadro.
+#
+# Igual que el ride del 19-jul: sin telemetria el plan no trae eventos, asi que
+# los segundos salen de revisar el video, no de picos de acelerometro.
+#
+# Lo que se ve: persecucion detras de un rider de kit oscuro con mochila, un
+# peralte de madera a los 6 s del short 1, y muchisimo skinny -- tablones del
+# ancho de la llanta -- en los dos shorts. Esa es la historia real de este ride.
+
+[[shorts]]
+order = 1
+climax = "halpatiokee-26jul@27.4"
+alt_hook = "one tire wide for the next mile"
+lineas = [
+  { t = 0.0,  texto = "he's way faster than me" },
+  { t = 5.8,  texto = "up the bank" },
+  { t = 11.8, texto = "and now it's all planks" },
+  { t = 23.8, texto = "up and over" },
+  { t = 31.7, texto = "how fast do you ride skinnies?" },
+]
+
+[[shorts]]
+order = 2
+climax = "halpatiokee-26jul@93.5"
+alt_hook = "the gap never got smaller"
+lineas = [
+  { t = 0.0,  texto = "still can't close the gap" },
+  { t = 8.3,  texto = "boardwalk, no bailing out" },
+  { t = 20.2, texto = "this one's narrower" },
+  { t = 23.5, texto = "how would you ride these boards?" },
+]

@@ -1,0 +1,21 @@
+# Ride del domingo 19-jul-2026 en Halpatiokee. Importado el 17-ago-2026.
+#
+# Este ride NO trae material crudo: es un MP4 de 2:17 que Chris ya edito a mano
+# antes de que existiera el pipeline. Solo pasa por Fase 2 (shorts). Como salio
+# de un editor, perdio el GPMF: no hay acelerometro ni GPS, y el motor puntua
+# solo por audio.
+
+nombre_trail = "Halpatiokee MTB Trail"
+
+# Sin telemetria el techo teorico del puntaje es 65 (base_gain * 100), no 100,
+# asi que el global de 55 dejaria el ride casi vacio. No es que sea flojo: es
+# otra escala. Ver la seccion "Rides sin telemetria" del skill mtb-clips.
+shorts_min_score = 30
+
+# El presupuesto automatico (15% del material, con piso de 30 s) esta pensado
+# para un ride crudo de 45 min lleno de pedaleo. Aca el material YA es un
+# editado de 2:17: el recorte duro lo hizo Chris a mano, y quedarse con 30 s de
+# eso tira a la basura la mitad de lo bueno. Se pide el largo completo para que
+# pasen todos los candidatos que superan el umbral del ride, que es quien manda
+# de verdad en este caso.
+reel_segundos = 140
