@@ -269,6 +269,31 @@ que sobra se descarta con aviso.
 Si aun asi un sobrante se queda a un pelo del piso y vale la pena, esta
 `shorts_min_seconds` en el `ajustes.toml` **del ride** (0 = usar el global).
 
+## Ajustes pendientes (Chris, 17-ago-2026) -- lo primero al retomar
+
+Viendo los shorts de julio ya arreglados dijo que "mejoraron bastante" pero
+que faltan dos cosas. **No estan medidas todavia**, se pospusieron por limite
+de creditos, no por falta de importancia:
+
+1. **El final del short queda a medias**, "parece cortado a mitad de accion".
+2. **Algunos clips cortan justo antes** de que se vea que viene otro momento
+   de accion.
+
+El planteo de Chris fue que quiza sea por ser material ya editado sin
+telemetria. Es plausible pero **no verificado**: los dos sintomas apuntan a la
+cola del segmento, que se decide en `segments._trim_tail` con `post_roll`
+(3.6 s) y `tail_hold_seconds` (1.0 s), y el segundo tambien puede ser
+`merge_gap_seconds` (1.5 s) no uniendo dos tramos de accion cercanos. Sin
+telemetria la curva de puntaje es solo audio -- mas suave y con menos filo --
+asi que el punto de cierre se elige peor, pero **eso hay que medirlo antes de
+tocar ningun numero**: es exactamente el error que ya se cometio una vez con
+las migajas, donde la primera hipotesis (que parpadeaba el texto) era falsa.
+
+Camino sugerido al retomar: comparar donde cierra el pipeline contra donde
+cierra la accion de verdad en los 5 shorts de julio, igual que se midio el
+lead-in contra el ground truth de JD Park en Fase 1. Ver
+[[errores-de-diseno-corregidos]] en la memoria del proyecto.
+
 ## Calibracion pendiente
 
 `shorts_min_score = 55.0` esta **sin calibrar contra su ojo**: es el valor
