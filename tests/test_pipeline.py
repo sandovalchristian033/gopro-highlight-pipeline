@@ -20,6 +20,7 @@ from pov import ajustes as ajustes_mod
 from pov import bookends as bookends_mod
 from pov import cleanup as cleanup_mod
 from pov import config as config_mod
+from pov import escenas as escenas_mod
 from pov import ffmpeg as ffmpeg_mod
 from pov import gpmf, render as render_mod, ride as ride_mod
 from pov import segments as segments_mod, signals as signals_mod
@@ -1359,6 +1360,170 @@ lineas = [ { t = 0.0, texto = "texto que no deberia aplicarse" } ]
         )
 
 
+def test_material_ya_editado() -> None:
+    """Material que entra ya editado: no caer encima de sus propios cortes.
+
+    Un MP4 exportado de un editor lleva dentro los cortes de esa edicion. El
+    detector de accion no los ve (puntua por audio y acelerometro, no por
+    imagen), asi que elige un tramo cualquiera y sus bordes pueden caer a
+    medio segundo de uno de ellos. Lo que sobrevive en el short es un plano
+    que aparece y se va: Chris cazo tres (0.53, 0.33 y 0.50 s) en el short #1
+    del ride del 19-jul-2026.
+    """
+    print("\n[21] Material que entra ya editado")
+
+    def seg(name: str, start: float, end: float, score: float = 60.0) -> segments_mod.Segment:
+        return segments_mod.Segment(
+            source=Path(name), start=start, end=end, score=score, peak_time=(start + end) / 2,
+        )
+
+    cfg = config_mod.load().merged({"shorts_min_fragmento": 1.2, "min_segment_seconds": 3.1})
+    cortes = [10.0, 20.0, 30.0]
+
+    # --- snap: solo los extremos, nunca el medio -------------------------
+    check(
+        "una migaja al principio se va moviendo el borde al corte",
+        escenas_mod.snap(9.5, 25.0, cortes, 1.2) == (10.0, 25.0),
+        f"{escenas_mod.snap(9.5, 25.0, cortes, 1.2)}",
+    )
+    check(
+        "una migaja al final tambien",
+        escenas_mod.snap(12.0, 20.4, cortes, 1.2) == (12.0, 20.0),
+        f"{escenas_mod.snap(12.0, 20.4, cortes, 1.2)}",
+    )
+    check(
+        "un corte a mitad del tramo NO se toca (hay material a los dos lados)",
+        escenas_mod.snap(5.0, 25.0, cortes, 1.2) == (5.0, 25.0),
+        f"{escenas_mod.snap(5.0, 25.0, cortes, 1.2)}",
+    )
+    # Dos migajas seguidas: mover el borde una sola vez dejaria la segunda.
+    check(
+        "dos migajas seguidas se van las dos",
+        escenas_mod.snap(9.5, 25.0, [10.0, 10.8, 20.0], 1.2) == (10.8, 25.0),
+        f"{escenas_mod.snap(9.5, 25.0, [10.0, 10.8, 20.0], 1.2)}",
+    )
+    check(
+        "un archivo sin cortes propios se queda como estaba",
+        escenas_mod.snap(9.5, 25.0, [], 1.2) == (9.5, 25.0),
+    )
+
+    # --- apply: ajusta, descarta lo que era casi todo migaja, avisa -------
+    notas: list[str] = []
+    ajustados = escenas_mod.apply(
+        [
+            seg("A.mp4", 9.5, 25.0),    # migaja de 0.5s al principio -> se ajusta
+            seg("A.mp4", 19.05, 23.05),  # queda en 3.05s, bajo el minimo -> se va
+            seg("B.mp4", 0.0, 8.0),      # archivo sin cortes -> intacto
+        ],
+        {"A.mp4": cortes},
+        cfg,
+        on_note=notas.append,
+    )
+    check("el tramo ajustado sobrevive con el borde corrido", ajustados[0].start == 10.0)
+    check(
+        "el tramo que entre cortes se queda bajo el minimo se descarta entero",
+        len(ajustados) == 2 and all(s.start != 19.05 for s in ajustados),
+        f"{[(s.source.name, s.start) for s in ajustados]}",
+    )
+    check(
+        "un archivo del que no se detectaron cortes pasa intacto",
+        ajustados[1].source.name == "B.mp4" and ajustados[1].start == 0.0,
+    )
+    check("cada cambio se avisa, no pasa en silencio", len(notas) == 2, f"{notas}")
+
+    # El detector no es perfecto: el sol entre las palmas y el motion blur
+    # disparan `scene` igual que un corte. Cuatro falsos positivos seguidos se
+    # comieron un clip continuo de 5.85 s del 26-jul antes de existir el tope.
+    falsos = [54.87, 55.47, 56.33, 57.40]
+    notas_tope: list[str] = []
+    intacto = escenas_mod.apply(
+        [seg("A.mp4", 52.43, 58.28)], {"A.mp4": falsos}, cfg, on_note=notas_tope.append
+    )
+    check(
+        "un clip que perderia mas del tope NO se recorta: es el detector fallando",
+        len(intacto) == 1 and intacto[0].start == 52.43 and intacto[0].end == 58.28,
+        f"{[(s.start, s.end) for s in intacto]}",
+    )
+    check(
+        "y se avisa de que no se ajusto, no pasa en silencio",
+        len(notas_tope) == 1 and "NO ajuste" in notas_tope[0],
+        f"{notas_tope}",
+    )
+
+    # Un archivo crudo de GoPro es una toma continua: buscarle cortes seria
+    # decodificar 47 min por ride para no encontrar nada.
+    check(
+        "solo se le buscan cortes al material sin telemetria",
+        escenas_mod.necesita_deteccion({"accel_hz": 0, "gps": False})
+        and not escenas_mod.necesita_deteccion({"accel_hz": 199, "gps": True}),
+    )
+
+    # --- reparto equilibrado: no tirar un huerfano que califico ----------
+    # Las duraciones reales del ride del 26-jul: el greedy hace 3+3+1 y tira
+    # 6.9 s; 2+2+3 saca tres shorts validos del mismo material.
+    duraciones = [11.31, 17.05, 11.08, 8.30, 5.70, 5.78, 6.90]
+    eligible = []
+    cursor = 0.0
+    for d in duraciones:
+        eligible.append(seg("A.mp4", cursor, cursor + d))
+        cursor += d + 1.0
+
+    cfg_grupos = cfg.merged({"shorts_max_clips": 3, "shorts_max_seconds": 40.0})
+    greedy = shorts_mod._greedy_groups(eligible, cfg_grupos)
+    check(
+        "el greedy deja un huerfano por debajo del piso",
+        [len(g) for g in greedy] == [3, 3, 1],
+        f"{[len(g) for g in greedy]}",
+    )
+    balanceado = shorts_mod._balanced_groups(eligible, cfg_grupos, 15.0)
+    check(
+        "el reparto equilibrado saca un short mas de los mismos clips",
+        balanceado is not None and len(balanceado) == 3,
+        f"{balanceado and [len(g) for g in balanceado]}",
+    )
+    check(
+        "y ningun grupo queda por debajo del piso",
+        all(sum(c.duration for c in g) >= 15.0 for g in balanceado),
+        f"{[round(sum(c.duration for c in g), 1) for g in balanceado]}",
+    )
+    check(
+        "el reparto sigue siendo cronologico (no reordena el ride)",
+        [c.start for g in balanceado for c in g] == [c.start for c in eligible],
+    )
+    # Cuando el material no da para que todos lleguen al piso, no se inventa:
+    # devuelve None y manda el greedy, que descarta avisando.
+    check(
+        "sin material suficiente devuelve None en vez de forzar un short flojo",
+        shorts_mod._balanced_groups(eligible[:1], cfg_grupos, 15.0) is None,
+    )
+
+    # El rebalanceo solo entra si el greedy dejo algo fuera: un ride que ya
+    # reparte bien no se toca, para no mover shorts que Chris ya aprobo.
+    limpios = [seg("A.mp4", i * 40.0, i * 40.0 + 16.0) for i in range(4)]
+    ride = ride_mod.Ride(
+        root=Path("fake-ride"),
+        selected=limpios,
+        ajustes=ajustes_mod.Ajustes(nombre_trail="Test"),
+    )
+    cortos = shorts_mod.select_shorts(ride, cfg_grupos.merged({"shorts_min_score": 50.0}))
+    check(
+        "un ride sin huerfanos conserva el reparto greedy",
+        [len(s.clips) for s in cortos] == [len(g) for g in shorts_mod._greedy_groups(limpios, cfg_grupos)],
+        f"{[len(s.clips) for s in cortos]}",
+    )
+
+    # --- piso de duracion por ride ---------------------------------------
+    corto_ride = ride_mod.Ride(
+        root=Path("fake-ride"),
+        selected=[seg("A.mp4", 0.0, 13.0)],
+        ajustes=ajustes_mod.Ajustes(nombre_trail="Test", shorts_min_seconds=13.0),
+    )
+    check(
+        "shorts_min_seconds del ride manda sobre el global",
+        len(shorts_mod.select_shorts(corto_ride, cfg_grupos.merged({"shorts_min_score": 50.0}))) == 1,
+    )
+
+
 def main() -> int:
     print("Validando el motor con datos sinteticos")
     print("=" * 46)
@@ -1383,6 +1548,7 @@ def main() -> int:
     test_space_check()
     test_shorts()
     test_shorts_guion()
+    test_material_ya_editado()
 
     print("\n" + "=" * 46)
     print(f"{len(PASSED)} OK, {len(FAILED)} fallas")

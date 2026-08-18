@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 
 from . import config as config_mod
-from . import cleanup, ffmpeg, ingest, matching, render, ride as ride_mod
+from . import cleanup, escenas as escenas_mod, ffmpeg, ingest, matching, render, ride as ride_mod
 from . import shorts as shorts_mod, shorts_guion as shorts_guion_mod
 
 BAR_WIDTH = 26
@@ -222,21 +222,40 @@ def cmd_shorts(args, cfg) -> int:
     title(f"Shorts de {root.name}")
     result = ride_mod.analyse(root, cfg)
 
+    # Material que entra ya editado trae sus propios cortes, y el detector de
+    # accion no los ve: sin esto los bordes caen encima de ellos y en el short
+    # sobreviven planos de medio segundo. Solo corre sobre archivos sin
+    # telemetria, que son los unicos que pueden venir de un editor.
+    def on_scan(index: int, total: int, name: str) -> None:
+        say(f"  buscando los cortes de la edicion original en {name} ({index}/{total})...")
+
+    cortes_fuente = escenas_mod.load_or_detect(result, cfg, on_progress=on_scan)
+    if cortes_fuente:
+        cuantos = sum(len(v) for v in cortes_fuente.values())
+        say(f"  el material ya venia editado: {cuantos} cortes propios detectados.")
+    result.selected = escenas_mod.apply(
+        result.selected, cortes_fuente, cfg, on_note=lambda msg: say(f"  {msg}")
+    )
+
+    min_seconds = result.ajustes.shorts_min_seconds or cfg.shorts_min_seconds
+
     def on_discard(members, total: float) -> None:
         cuales = ", ".join(f"{c.source.stem}@{c.start:.0f}s" for c in members)
         say(f"  descarto {total:.0f}s ({cuales}): no llega a shorts_min_seconds "
-            f"({cfg.shorts_min_seconds:.0f}s).")
+            f"({min_seconds:.0f}s).")
 
     shorts = shorts_mod.select_shorts(result, cfg, on_discard=on_discard)
 
     min_score = result.ajustes.shorts_min_score or cfg.shorts_min_score
     if result.ajustes.shorts_min_score:
         say(f"  piso de puntaje: {min_score:.0f} pts (fijado en ajustes.toml de este ride)")
+    if result.ajustes.shorts_min_seconds:
+        say(f"  piso de duracion: {min_seconds:.0f}s (fijado en ajustes.toml de este ride)")
 
     if not shorts:
         say(f"  Ningun short quedo en pie: nada paso el piso de puntaje "
             f"({min_score:.0f} pts) o todo quedo bajo shorts_min_seconds "
-            f"({cfg.shorts_min_seconds:.0f}s).")
+            f"({min_seconds:.0f}s).")
         mejor = max((s.score for s in result.selected if not s.role), default=0.0)
         say(f"  El mejor momento del ride puntuo {mejor:.0f}.")
         if mejor < min_score:

@@ -81,6 +81,75 @@ def _fallback_lines(short: Short, trail: str, cfg) -> list[tuple[float, str]]:
     return [(0.0, hook), (closing_at, cierre)]
 
 
+def _greedy_groups(eligible: list[Segment], cfg) -> list[list[Segment]]:
+    """Reparto de toda la vida: ir llenando un grupo hasta que no quepa mas."""
+    groups: list[list[Segment]] = []
+    for segment in eligible:
+        if groups and len(groups[-1]) < cfg.shorts_max_clips:
+            total = sum(c.duration for c in groups[-1]) + segment.duration
+            if total <= cfg.shorts_max_seconds:
+                groups[-1].append(segment)
+                continue
+        groups.append([segment])
+    return groups
+
+
+def _balanced_groups(
+    eligible: list[Segment], cfg, min_seconds: float
+) -> list[list[Segment]] | None:
+    """El reparto que saca **mas shorts validos** de los mismos clips, o None.
+
+    Sigue siendo contiguo -- no reordena el ride, solo elige donde partir --
+    y respeta los tres limites de siempre (`shorts_max_clips`,
+    `shorts_max_seconds`, y ahora tambien el piso). La diferencia con el
+    greedy es que mira el reparto completo antes de decidir: en el ride del
+    26-jul, 3+3+1 tiraba un huerfano de 6.9 s, mientras que 2+2+3 da tres
+    shorts de 28, 19 y 18 s con exactamente el mismo material (pedido de
+    Chris el 17-ago-2026: "crear un short mas con los clips que califican").
+
+    Entre repartos con la misma cantidad de shorts gana el mas parejo,
+    medido contra el centro de la ventana configurada -- con 15/40 eso son
+    27.5 s, dentro de los 20-30 s que Chris considera comodos.
+
+    Devuelve None si no existe ningun reparto donde *todos* los grupos
+    lleguen al piso; ahi manda el greedy y lo que sobre se descarta con
+    aviso, que es el comportamiento honesto cuando el material no da.
+    """
+    n = len(eligible)
+    objetivo = (min_seconds + cfg.shorts_max_seconds) / 2
+
+    # best[i] = (cuantos grupos, penalizacion, cortes) para eligible[i:].
+    # Se recorre de atras hacia adelante para que best[j] ya este resuelto.
+    best: list[tuple[int, float, list[int]] | None] = [None] * (n + 1)
+    best[n] = (0, 0.0, [])
+
+    for i in range(n - 1, -1, -1):
+        total = 0.0
+        for j in range(i + 1, min(i + int(cfg.shorts_max_clips), n) + 1):
+            total += eligible[j - 1].duration
+            if total > cfg.shorts_max_seconds:
+                break
+            if total < min_seconds:
+                continue
+            resto = best[j]
+            if resto is None:
+                continue
+            cand = (resto[0] + 1, resto[1] + (total - objetivo) ** 2, [j] + resto[2])
+            # Mas shorts gana; a igualdad, el reparto mas parejo.
+            if best[i] is None or (cand[0], -cand[1]) > (best[i][0], -best[i][1]):
+                best[i] = cand
+
+    if best[0] is None:
+        return None
+
+    groups: list[list[Segment]] = []
+    start = 0
+    for cut in best[0][2]:
+        groups.append(eligible[start:cut])
+        start = cut
+    return groups
+
+
 def select_shorts(ride: Ride, cfg, on_discard=None) -> list[Short]:
     """Agrupa los mejores momentos del ride en shorts de 2-3 clips.
 
@@ -112,23 +181,26 @@ def select_shorts(ride: Ride, cfg, on_discard=None) -> list[Short]:
     # no 100), asi que un ride importado ya editado necesita su propio piso.
     # Ver el docstring de `pov/ajustes.py`.
     min_score = ride.ajustes.shorts_min_score or cfg.shorts_min_score
+    min_seconds = ride.ajustes.shorts_min_seconds or cfg.shorts_min_seconds
     eligible = [s for s in ride.selected if not s.role and s.score >= min_score]
     if not eligible:
         return []
 
-    groups: list[list[Segment]] = []
-    for segment in eligible:
-        if groups and len(groups[-1]) < cfg.shorts_max_clips:
-            total = sum(c.duration for c in groups[-1]) + segment.duration
-            if total <= cfg.shorts_max_seconds:
-                groups[-1].append(segment)
-                continue
-        groups.append([segment])
+    groups = _greedy_groups(eligible, cfg)
+
+    # El greedy llena el primer grupo hasta el tope y deja lo que sobra en el
+    # ultimo, asi que suele terminar con un huerfano demasiado corto que se
+    # tira entero. Ese material califico: la accion es buena, solo cayo mal
+    # el reparto. Antes de descartarlo se intenta un reparto equilibrado.
+    if any(sum(c.duration for c in g) < min_seconds for g in groups):
+        rebalanced = _balanced_groups(eligible, cfg, min_seconds)
+        if rebalanced is not None:
+            groups = rebalanced
 
     viable: list[list[Segment]] = []
     for members in groups:
         total = sum(c.duration for c in members)
-        if total < cfg.shorts_min_seconds:
+        if total < min_seconds:
             if on_discard:
                 on_discard(members, total)
             continue

@@ -8,17 +8,22 @@
 # Lo que se ve: vas detras de otro rider (jersey naranja) casi todo el short 1.
 # Eso es la historia -- la persecucion, no un golpe. El short 2 es singletrack
 # apretado entre palmettos, del ancho del manillar.
+#
+# Re-sincronizado despues de que `pov/escenas.py` corriera los bordes de los
+# clips para no caer encima de los cortes de la edicion original: el clip de
+# apertura del short 1 arranca ahora en 59.0 y no en 58.5, y todo lo que venia
+# despues se movio ~1 s.
 
 [[shorts]]
 order = 1
-climax = "halpatiokee-19jul@58.5"
+climax = "halpatiokee-19jul@59.0"
 alt_hook = "he dropped me in the first corner"
 lineas = [
   { t = 0.0,  texto = "trying to hold his wheel" },
   { t = 4.6,  texto = "he's already gone" },
-  { t = 13.8, texto = "here comes the wood" },
-  { t = 23.8, texto = "okay, back on him" },
-  { t = 31.6, texto = "how long would you last back here?" },
+  { t = 12.9, texto = "here comes the wood" },
+  { t = 22.9, texto = "okay, back on him" },
+  { t = 30.3, texto = "how long would you last back here?" },
 ]
 
 [[shorts]]

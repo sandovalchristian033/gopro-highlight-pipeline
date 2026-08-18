@@ -42,6 +42,11 @@ configuracion global ni afecte a los demas rides:
     # techo teorico es base_gain * 100 = 65 puntos. Con el global en 55 casi
     # nada califica, y no es que el ride sea flojo: es otra escala.
     shorts_min_score = 30
+
+    # Piso de duracion de un short solo para este ride, en segundos. En 0
+    # manda el global. Sirve para rescatar un sobrante que se queda a un pelo
+    # del piso general y que igual vale como short.
+    shorts_min_seconds = 13
 """
 
 from __future__ import annotations
@@ -67,6 +72,8 @@ class Ajustes:
     nombre_trail: str = ""
     # 0 = usar el global de config.toml. Ver el docstring del modulo.
     shorts_min_score: float = 0.0
+    # 0 = usar el global de config.toml. Ver el docstring del modulo.
+    shorts_min_seconds: float = 0.0
 
     @property
     def activos(self) -> bool:
@@ -78,6 +85,7 @@ class Ajustes:
             or self.reel_segundos
             or self.nombre_trail
             or self.shorts_min_score
+            or self.shorts_min_seconds
         )
 
     def excluido(self, path: Path) -> bool:
@@ -109,6 +117,8 @@ class Ajustes:
             lines.append(f"nombre del trail para shorts: {self.nombre_trail}")
         if self.shorts_min_score:
             lines.append(f"piso de puntaje de shorts fijado en {self.shorts_min_score:.0f} pts")
+        if self.shorts_min_seconds:
+            lines.append(f"piso de duracion de shorts fijado en {self.shorts_min_seconds:.0f}s")
         return lines
 
 
@@ -135,6 +145,7 @@ def load(ride_root: Path) -> Ajustes:
         reel_segundos=float(data.get("reel_segundos", 0.0)),
         nombre_trail=str(data.get("nombre_trail", "")),
         shorts_min_score=float(data.get("shorts_min_score", 0.0)),
+        shorts_min_seconds=float(data.get("shorts_min_seconds", 0.0)),
     )
 
 

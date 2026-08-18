@@ -244,6 +244,38 @@ shorts_max_clips = 3
 shorts_min_seconds = 15.0
 shorts_max_seconds = 40.0
 
+# --- material que entra YA editado (ver pov/escenas.py) ---
+#
+# Un MP4 exportado de un editor lleva dentro los cortes de esa edicion, y el
+# detector de accion no los ve: puntua por audio y acelerometro, no por
+# imagen. Si el borde de un tramo elegido cae cerca de uno de esos cortes,
+# en el short sobrevive un plano de medio segundo que aparece y se va sin que
+# el ojo lo registre. Chris cazo tres asi (0.53, 0.33 y 0.50 s) en el short
+# #1 del ride del 19-jul, el 17-ago-2026.
+#
+# El arreglo no es acortar por si acaso: es correr el borde hasta el corte,
+# asi la migaja se va entera y el resto del tramo queda intacto.
+#
+# shorts_min_fragmento: lo mas corto que puede durar un plano dentro de un
+#   short. Por debajo de ~1.2 s se lee como parpadeo, no como plano.
+# escena_umbral: cuanto tiene que cambiar la imagen para contarlo como corte.
+#   0.12 encuentra los cortes reales de los dos MP4 de julio; con 0.35 se
+#   escapa la mitad, porque en POV de bosque dos tomas seguidas se parecen
+#   mucho (todo es follaje verde).
+#
+# Esto solo corre sobre archivos SIN telemetria: un MP4 crudo de la GoPro
+# siempre trae GPMF y es una toma continua, asi que decodificarlo entero para
+# no encontrar nada seria tirar minutos por ride.
+# shorts_snap_max_recorte: el detector no es perfecto -- el sol filtrado
+#   entre las palmas y el motion blur de un tramo rapido disparan la misma
+#   señal que un corte. Si quitar las "migajas" se lleva mas de esta fraccion
+#   del clip, no eran migajas: el clip se deja entero y se avisa. Sin este
+#   limite, cuatro falsos positivos seguidos se comieron 5.85 s de material
+#   continuo en el ride del 26-jul.
+shorts_min_fragmento = 1.2
+escena_umbral = 0.12
+shorts_snap_max_recorte = 0.25
+
 # Cuanto se queda en pantalla cada linea del guion (o del texto automatico
 # de respaldo) antes de desaparecer -- fragmentos cortos, no parrafos.
 shorts_line_seconds = 2.2

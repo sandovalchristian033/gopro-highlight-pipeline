@@ -241,6 +241,34 @@ Cada casilla es un frame cada 2 s, leyendo por filas desde t=0. (Nada de
 `drawtext` para rotular: fontconfig no esta configurado en este equipo y
 ffmpeg se cae con segfault.)
 
+**Y el archivo trae sus propios cortes.** Un editado de Chris cambia de plano
+cada 2-6 s. El detector de accion no los ve -- puntua por audio, no por imagen
+-- asi que los bordes de un tramo elegido caen encima de ellos y sobrevive una
+migaja: un plano de medio segundo que aparece y se va. Chris cazo tres (0.53,
+0.33 y 0.50 s) en el short #1 del 19-jul. Lo resuelve `pov/escenas.py`, que
+corre solo sobre archivos sin telemetria y **mueve el borde hasta el corte**
+en vez de acortar a ciegas. No hay nada que configurar por ride, pero si lees
+en consola `NO ajuste ...` o `descarto ... entre los cortes`, mira ese tramo
+antes de darlo por bueno: el detector confunde sol entre las palmas y motion
+blur con cortes, y por eso existe `shorts_snap_max_recorte`.
+
+### El reparto en grupos: el huerfano
+
+El agrupado es goloso -- llena el primer short hasta el tope y deja lo que
+sobra en el ultimo -- asi que tiende a terminar con un sobrante demasiado
+corto que se tira entero. Cuando eso pasa, `_balanced_groups` busca el reparto
+contiguo que saque **mas shorts validos** de los mismos clips: en el 26-jul,
+3+3+1 tiraba 6.9 s mientras que 2+2+3 daba tres shorts de 28, 19 y 18 s
+(pedido de Chris: "crear un short mas con los clips que califican").
+
+Solo entra si el goloso dejo algo fuera, a proposito: un ride que ya reparte
+bien no se toca, para no mover shorts que Chris ya aprobo. Si el material no
+da para que todos lleguen al piso, no se fuerza nada -- manda el goloso y lo
+que sobra se descarta con aviso.
+
+Si aun asi un sobrante se queda a un pelo del piso y vale la pena, esta
+`shorts_min_seconds` en el `ajustes.toml` **del ride** (0 = usar el global).
+
 ## Calibracion pendiente
 
 `shorts_min_score = 55.0` esta **sin calibrar contra su ojo**: es el valor

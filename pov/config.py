@@ -208,6 +208,24 @@ class Config:
     # YouTube/TikTok/Reels cuando haya datos, no son definitivos.
     shorts_min_seconds: float = 15.0
     shorts_max_seconds: float = 40.0
+    # Lo mas corto que puede durar un plano dentro de un short. Solo aplica a
+    # material que entra YA editado (ver `pov/escenas.py`): si el borde de un
+    # tramo cae cerca de un corte de esa edicion previa, queda una migaja que
+    # aparece y se va sin que el ojo la registre. Chris cazo tres de 0.53,
+    # 0.33 y 0.50 s en el short #1 del 19-jul. 1.2 s es el punto en que un
+    # plano se lee como plano y no como parpadeo.
+    shorts_min_fragmento: float = 1.2
+    # Cuanto tiene que cambiar la imagen para contarlo como corte de edicion.
+    # 0.12 encuentra los cortes reales de los dos MP4 de julio; subirlo a
+    # 0.35 se salta la mitad porque en POV de bosque dos tomas seguidas se
+    # parecen mucho (todo es follaje verde).
+    escena_umbral: float = 0.12
+    # Cuanto del clip puede costar, como maximo, quitarle las migajas. Por
+    # encima de esto no hay migajas: es el detector confundiendo sol entre las
+    # hojas o motion blur con un corte, y el clip se deja entero. Sin este
+    # limite, cuatro falsos positivos seguidos se comieron un clip continuo de
+    # 5.85 s en el ride del 26-jul.
+    shorts_snap_max_recorte: float = 0.25
     # Cuanto se queda en pantalla cada linea del guion (o del texto
     # automatico de respaldo) antes de desaparecer -- fragmentos cortos,
     # legibles en un vistazo, no parrafos.
