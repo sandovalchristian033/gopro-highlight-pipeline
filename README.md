@@ -5,6 +5,8 @@ Turns 20 raw GoPro files into a publishable edit without watching the footage.
 A telemetry-driven video pipeline: it finds the action by reading the sensor data
 embedded inside the MP4, not by analyzing pixels.
 
+![Pipeline architecture](docs/pipeline.svg)
+
 *(Detailed Spanish documentation: [README.es.md](README.es.md))*
 
 ---
