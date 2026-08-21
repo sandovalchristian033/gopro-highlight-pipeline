@@ -25,3 +25,9 @@
 __pycache__/
 *.pyc
 .huellas/
+
+# Notas personales de publicacion en redes: no son parte del pipeline.
+PERFIL-TIKTOK.md
+PUBLICAR-julio.md
+PUBLICAR-tiktok.md
+old shorts and reels/
